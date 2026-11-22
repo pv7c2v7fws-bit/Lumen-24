@@ -19,7 +19,7 @@
 // ---------- Dữ liệu hiển thị (tạm thời đặt ở đây) ----------
 
 export const TEN_QUAN = 'Lumen 24';
-export const DUONG_DAN_LOGO = './android-chrome-512x512.png';
+export const DUONG_DAN_LOGO = './logo.png';
 export const THONG_BAO_MO_PHONG = 'Hệ thống mô phỏng cho bài tập, dữ liệu là giả';
 
 // Menu chính theo thứ tự trong đặc tả (mục 2.1).
