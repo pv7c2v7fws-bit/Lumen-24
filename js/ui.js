@@ -95,8 +95,8 @@ function taoThuongHieu() {
     class: 'brand__logo',
     src: DUONG_DAN_LOGO,
     alt: '', // ảnh trang trí, tên quán đã có bằng chữ ngay cạnh
-    width: '36',
-    height: '36',
+    width: '56',
+    height: '56',
   });
   // Nếu file logo chưa có hoặc lỗi thì ẩn ảnh, vẫn còn tên chữ.
   logo.addEventListener('error', () => { logo.hidden = true; }, { once: true });
