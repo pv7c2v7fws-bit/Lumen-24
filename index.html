@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- index.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lumen 24 – Study cafe mở cửa 24/7 (bản mô phỏng)</title>
+  <meta name="description" content="Lumen 24: study cafe yên tĩnh, giá minh bạch, mở cửa 24/7. Đây là website mô phỏng cho bài tập.">
+  <meta name="theme-color" content="#14213d">
+
+  <link rel="icon" href="./favicon.ico">
+
+  <!-- Font Be Vietnam Pro (có font dự phòng trong css/tokens.css) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <main id="noi-dung">
+    <noscript>
+      <p class="noscript-note">Trang này cần bật JavaScript để hiển thị menu và chân trang.</p>
+    </noscript>
+
+    <section class="hero" aria-labelledby="hero-tieu-de">
+      <div class="container hero__inner">
+        <p class="hero__eyebrow">Study cafe · 24/7</p>
+        <h1 class="hero__title" id="hero-tieu-de">Lumen 24</h1>
+        <p class="hero__slogan">Yên tĩnh để tập trung. Giá minh bạch. Ánh sáng không tắt.</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary btn--lg" href="./dat-phong.html">Đặt lịch</a>
+          <a class="btn btn--outline btn--lg" href="./bang-gia.html">Xem combo</a>
+        </div>
+        <p class="hero__note">Trang chủ tạm cho Bước 0. Nội dung đầy đủ sẽ được làm ở các bước sau.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    renderLayout();
+  </script>
+</body>
+</html>
