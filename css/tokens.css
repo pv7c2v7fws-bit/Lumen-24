@@ -82,7 +82,7 @@
   /* ===== Bố cục ===== */
   --rong-toi-da: 1120px;         /* độ rộng tối đa của nội dung */
   --le-trang: 16px;              /* lề hai bên (tăng lên 24px từ 768px, xem style.css) */
-  --cao-header: 64px;
+  --cao-header: 72px;
   --cao-dai: 28px;               /* chiều cao ước lượng của dải thông báo */
   --z-dau-trang: 100;
 
