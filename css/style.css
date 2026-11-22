@@ -177,13 +177,13 @@ a { color: inherit; text-underline-offset: 3px; }
 }
 .brand__logo {
   flex: none;
-  height: 128px;
+  height: 96px;
   width: auto;
-  max-width: 60vw;      /* không cho logo chiếm quá nhiều chỗ trên điện thoại */
+  max-width: 60vw;
   object-fit: contain;
 }
 @media (min-width: 768px) {
-  .brand__logo { height: 176px; max-width: 360px; }
+  .brand__logo { height: 132px; max-width: 270px; }
 }
 
 .header__actions {
