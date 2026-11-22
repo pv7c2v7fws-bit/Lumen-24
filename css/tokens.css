@@ -1,0 +1,91 @@
+/* css/tokens.css
+   ------------------------------------------------------------------
+   Design tokens của Lumen 24: màu, font, cỡ chữ, khoảng cách, bo góc, đổ bóng.
+   Muốn đổi phong cách cho cả website, chỉ cần sửa file này.
+   Các file CSS khác chỉ dùng var(--ten-bien), không viết màu cứng.
+   ------------------------------------------------------------------ */
+
+:root {
+  /* ===== Màu nền và chữ ===== */
+  --mau-nen: #fffbf2;            /* nền trang: trắng ấm, kem nhạt */
+  --mau-nen-phu: #fff3da;        /* nền khối phụ, hiệu ứng rê chuột */
+  --mau-be-mat: #ffffff;         /* nền thẻ, header */
+  --mau-chu: #14213d;            /* chữ chính: xanh than đậm */
+  --mau-chu-phu: #4a566e;        /* chữ phụ, chú thích */
+  --mau-vien: #e6dfd0;           /* đường viền nhạt */
+  --mau-vien-dam: #cfc6b2;       /* đường viền đậm hơn */
+  --mau-focus: #2563eb;          /* viền focus khi dùng bàn phím */
+
+  /* ===== Màu nhấn (vàng ấm, gợi ánh sáng) ===== */
+  --mau-nhan: #f6b93b;           /* nút chính, nhãn PHỔ BIẾN */
+  --mau-nhan-dam: #e5a21a;       /* nút chính khi rê chuột */
+  --mau-nhan-nhat: #ffe9b3;      /* nền nhấn nhẹ (mục menu đang chọn) */
+  --mau-chu-tren-nhan: #14213d;  /* chữ trên nền vàng */
+  --mau-anh-sang: rgba(246, 185, 59, 0.30); /* quầng sáng trang trí */
+
+  /* ===== Dải thông báo mô phỏng ===== */
+  --mau-dai-nen: #14213d;
+  --mau-dai-chu: #ffe9b3;
+
+  /* ===== Chân trang ===== */
+  --mau-chan-nen: #101a33;
+  --mau-chan-chu: #f3eee2;
+  --mau-chan-chu-phu: #b9c2d8;
+  --mau-chan-vien: rgba(255, 255, 255, 0.16);
+
+  /* ===== Màu trạng thái ===== */
+  --mau-thanh-cong: #1e8e5a;
+  --mau-canh-bao: #b7791f;
+  --mau-loi: #c53030;
+  --mau-thong-tin: #2563eb;
+
+  /* ===== Màu mức độ đông (dùng ở sơ đồ chỗ ngồi) ===== */
+  --mau-dong-thap: #2fa36b;      /* xanh = vắng */
+  --mau-dong-vua: #f2c230;       /* vàng = vừa */
+  --mau-dong-cao: #f08a24;       /* cam = đông */
+  --mau-dong-kin: #d64545;       /* đỏ = gần kín */
+
+  /* ===== Font và cỡ chữ ===== */
+  --font-chinh: "Be Vietnam Pro", "Inter", system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --co-chu-xs: 0.75rem;          /* 12px */
+  --co-chu-sm: 0.875rem;         /* 14px */
+  --co-chu-vua: 1rem;            /* 16px */
+  --co-chu-lon: 1.125rem;        /* 18px */
+  --co-chu-h3: 1.25rem;
+  --co-chu-h2: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
+  --co-chu-h1: clamp(2.75rem, 2rem + 5vw, 4.5rem);
+  --dong-cao: 1.6;
+
+  /* ===== Khoảng cách ===== */
+  --kc-1: 4px;
+  --kc-2: 8px;
+  --kc-3: 12px;
+  --kc-4: 16px;
+  --kc-5: 24px;
+  --kc-6: 32px;
+  --kc-7: 48px;
+  --kc-8: 64px;
+  --kc-9: 96px;
+
+  /* ===== Bo góc ===== */
+  --bo-goc-nho: 8px;
+  --bo-goc: 12px;
+  --bo-goc-lon: 16px;
+  --bo-goc-tron: 999px;
+
+  /* ===== Đổ bóng ===== */
+  --bong-nhe: 0 1px 2px rgba(20, 33, 61, 0.06), 0 2px 8px rgba(20, 33, 61, 0.06);
+  --bong-vua: 0 4px 16px rgba(20, 33, 61, 0.10);
+  --bong-cao: 0 12px 32px rgba(20, 33, 61, 0.14);
+
+  /* ===== Bố cục ===== */
+  --rong-toi-da: 1120px;         /* độ rộng tối đa của nội dung */
+  --le-trang: 16px;              /* lề hai bên (tăng lên 24px từ 768px, xem style.css) */
+  --cao-header: 64px;
+  --cao-dai: 28px;               /* chiều cao ước lượng của dải thông báo */
+  --z-dau-trang: 100;
+
+  /* ===== Hiệu ứng ===== */
+  --chuyen: 160ms ease;
+}
