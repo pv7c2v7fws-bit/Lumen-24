@@ -177,10 +177,13 @@ a { color: inherit; text-underline-offset: 3px; }
 }
 .brand__logo {
   flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--bo-goc-nho);
-  object-fit: cover;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--bo-goc);
+  object-fit: contain; /* giữ nguyên tỉ lệ logo, không bị cắt */
+}
+@media (min-width: 768px) {
+  .brand__logo { width: 56px; height: 56px; }
 }
 
 .header__actions {
