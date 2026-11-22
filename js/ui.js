@@ -94,16 +94,14 @@ function taoThuongHieu() {
   const logo = el('img', {
     class: 'brand__logo',
     src: DUONG_DAN_LOGO,
-    alt: '', // ảnh trang trí, tên quán đã có bằng chữ ngay cạnh
-    width: '56',
+    alt: `${TEN_QUAN} – về trang chủ`, // không còn chữ bên cạnh nên ảnh cần alt
     height: '56',
   });
-  // Nếu file logo chưa có hoặc lỗi thì ẩn ảnh, vẫn còn tên chữ.
-  logo.addEventListener('error', () => { logo.hidden = true; }, { once: true });
-  return el('a', { class: 'brand', href: './index.html' }, [
-    logo,
-    el('span', { class: 'brand__text', text: TEN_QUAN }),
-  ]);
+  // Nếu file logo chưa có hoặc lỗi thì hiện lại tên chữ để liên kết không bị trống.
+  logo.addEventListener('error', () => {
+    logo.replaceWith(el('span', { class: 'brand__text', text: TEN_QUAN }));
+  }, { once: true });
+  return el('a', { class: 'brand', href: './index.html' }, logo);
 }
 
 function taoDaiThongBao() {
