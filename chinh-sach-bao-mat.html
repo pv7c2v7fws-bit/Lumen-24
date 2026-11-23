@@ -1,1 +1,107 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chính sách bảo mật – Lumen 24</title>
+  <meta name="description" content="Chính sách bảo mật của Lumen 24: hệ thống mô phỏng cho bài tập, dữ liệu là giả.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .policy { max-width: 820px; margin: 0 auto; padding: 24px 0 56px; }
+    .policy h1 { margin: 0 0 12px; }
+    .policy h2 { margin: 32px 0 10px; scroll-margin-top: 120px; }
+    .policy p, .policy li { line-height: 1.65; }
+    .policy code { padding: 1px 6px; border-radius: 6px; background: rgba(0, 0, 0, 0.06); font-size: 0.92em; word-break: break-all; }
+    .policy-switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
+    .policy-switch a { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.18); text-decoration: none; color: inherit; }
+    .policy-switch a[aria-current="page"] { background: var(--mau-nhan, #f5b83d); border-color: transparent; font-weight: 600; }
+    .policy-note { margin: 16px 0; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.12); background: rgba(245, 184, 61, 0.16); }
+    .policy-toc { margin: 16px 0 8px; padding: 14px 16px 14px 36px; border-radius: 12px; background: rgba(0, 0, 0, 0.04); }
+    .policy-toc a { color: inherit; }
+    .policy-table-wrap { overflow-x: auto; margin: 12px 0; }
+    .policy-table { border-collapse: collapse; width: 100%; min-width: 440px; }
+    .policy-table th, .policy-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(0, 0, 0, 0.12); vertical-align: top; }
+    .policy-table th { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container policy">
+      <nav aria-label="Các trang chính sách">
+        <ul class="policy-switch">
+          <li><a href="./dieu-khoan.html">Điều khoản</a></li>
+          <li><a href="./chinh-sach-hoan-coc.html">Chính sách hoàn cọc</a></li>
+          <li><a href="./chinh-sach-bao-mat.html" aria-current="page">Chính sách bảo mật</a></li>
+        </ul>
+      </nav>
 
+      <h1>Chính sách bảo mật</h1>
+      <p class="policy-note"><strong>Đây là hệ thống mô phỏng cho bài tập, dữ liệu là giả, không dùng để giao dịch thật.</strong> Vui lòng không nhập thông tin cá nhân thật, mật khẩu thật hay thông tin thẻ, ngân hàng.</p>
+
+      <ol class="policy-toc" aria-label="Mục lục">
+        <li><a href="#thong-tin-luu">Thông tin được lưu</a></li>
+        <li><a href="#khong-luu">Thông tin không lưu</a></li>
+        <li><a href="#mat-khau">Mật khẩu</a></li>
+        <li><a href="#trinh-duyet">Dữ liệu lưu trong trình duyệt</a></li>
+        <li><a href="#xoa-du-lieu">Cách xóa dữ liệu</a></li>
+      </ol>
+
+      <section aria-labelledby="thong-tin-luu">
+        <h2 id="thong-tin-luu">1. Thông tin được lưu</h2>
+        <p>Hệ thống chỉ lưu thông tin tối thiểu để mô phỏng dịch vụ:</p>
+        <ul>
+          <li>Họ tên;</li>
+          <li>Liên hệ (email hoặc số điện thoại);</li>
+          <li>Loại khách (sinh viên hoặc đi làm);</li>
+          <li>Trường hoặc đơn vị (tùy chọn).</li>
+        </ul>
+        <p>Ngoài ra, khi bạn dùng các tính năng mô phỏng (check-in, đặt phòng, đơn đồ, điểm tích lũy...), hệ thống lưu các bản ghi tương ứng để các trang hoạt động đúng.</p>
+      </section>
+
+      <section aria-labelledby="khong-luu">
+        <h2 id="khong-luu">2. Thông tin không lưu</h2>
+        <p>Hệ thống <strong>không lưu thông tin thẻ hay thông tin ngân hàng</strong>. Mã QR thanh toán là mã giả, không kết nối ngân hàng và không phát sinh giao dịch thật.</p>
+      </section>
+
+      <section aria-labelledby="mat-khau">
+        <h2 id="mat-khau">3. Mật khẩu</h2>
+        <p>Mật khẩu ở đây chỉ là chuỗi giả cho demo và <strong>không được mã hóa</strong>. Dữ liệu được lưu nguyên văn trong trình duyệt của bạn. Tuyệt đối không dùng mật khẩu thật mà bạn đang dùng ở nơi khác.</p>
+      </section>
+
+      <section aria-labelledby="trinh-duyet">
+        <h2 id="trinh-duyet">4. Dữ liệu lưu trong trình duyệt</h2>
+        <p>Trang web không có máy chủ lưu dữ liệu của bạn. Mọi dữ liệu nằm trong bộ nhớ của trình duyệt (<code>localStorage</code>) trên thiết bị bạn đang dùng, với khóa bắt đầu bằng <code>lumen24:</code>. Dữ liệu không tự đồng bộ sang thiết bị hoặc trình duyệt khác. Các tab cùng trình duyệt chia sẻ dữ liệu với nhau.</p>
+        <div class="policy-table-wrap">
+          <table class="policy-table">
+            <thead>
+              <tr><th scope="col">Loại dữ liệu</th><th scope="col">Nội dung</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Danh sách tài khoản</td><td>Họ tên, liên hệ, loại khách, đơn vị, mã khách, mật khẩu giả, tổng giờ tích lũy. Có sẵn 7 tài khoản demo.</td></tr>
+              <tr><td>Phiên đăng nhập</td><td>Chỉ lưu mã định danh của tài khoản đang đăng nhập (khóa <code>lumen24:lumen-current-user</code>), không lưu cả hồ sơ.</td></tr>
+              <tr><td>Đồng hồ mô phỏng</td><td>Giờ giả, tốc độ và trạng thái tạm dừng dùng để xem thử các tình huống.</td></tr>
+              <tr><td>Dữ liệu phát sinh khi dùng</td><td>Phiên ngồi, đặt phòng, giao dịch giả, đơn đồ, đơn in, điểm, góp ý. Chỉ xuất hiện khi các tính năng tương ứng được bật trên trang.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="xoa-du-lieu">
+        <h2 id="xoa-du-lieu">5. Cách xóa dữ liệu</h2>
+        <ul>
+          <li><strong>Đăng xuất:</strong> chỉ xóa phiên đăng nhập trên trình duyệt này. Tài khoản và các dữ liệu khác vẫn còn.</li>
+          <li><strong>Xóa dữ liệu trình duyệt:</strong> trong cài đặt trình duyệt, chọn xóa dữ liệu trang web (hoặc dữ liệu lưu trữ cục bộ) của địa chỉ trang này. Thao tác này xóa toàn bộ dữ liệu có khóa <code>lumen24:</code>, gồm tài khoản bạn đã đăng ký. Lần mở trang kế tiếp, hệ thống nạp lại các tài khoản demo ban đầu.</li>
+        </ul>
+        <p>Xem thêm <a href="./dieu-khoan.html">Điều khoản</a> và <a href="./chinh-sach-hoan-coc.html">Chính sách hoàn cọc</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    renderLayout();
+  </script>
+</body>
+</html>
