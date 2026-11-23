@@ -1,0 +1,204 @@
+<!-- dang-ky.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng ký – Lumen 24</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .tk-trang { padding: 32px 0 56px; }
+    .tk-khung {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--mau-nen-the, #ffffff);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(20, 30, 60, 0.10);
+      padding: 24px 20px;
+    }
+    .tk-khung h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .tk-phu { margin: 0 0 20px; color: #55607a; font-size: 0.95rem; }
+    .tk-truong { margin-bottom: 16px; }
+    .tk-truong label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .tk-truong input, .tk-truong select {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #b9c0d0;
+      border-radius: 10px;
+      background: #fff;
+      color: inherit;
+    }
+    .tk-truong input:focus-visible, .tk-truong select:focus-visible,
+    .tk-btn:focus-visible, .tk-lien-ket:focus-visible {
+      outline: 3px solid var(--mau-nhan, #f2b134);
+      outline-offset: 2px;
+    }
+    .tk-goi-y { margin: 4px 0 0; font-size: 0.85rem; color: #55607a; }
+    .tk-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 20px;
+      font: inherit;
+      font-weight: 600;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--mau-nhan, #f2b134);
+      color: #1b2a49;
+      width: 100%;
+    }
+    .tk-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    .tk-thong-bao { margin: 0 0 16px; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+    .tk-thong-bao[hidden] { display: none; }
+    .tk-thong-bao--loi { background: #fdecea; color: #8a1c14; border: 1px solid #f3b7b1; }
+    .tk-thong-bao--ok { background: #e8f6ee; color: #14532d; border: 1px solid #a7d7b9; }
+    .tk-ghi-chu { margin: 16px 0 0; font-size: 0.85rem; color: #55607a; }
+    .tk-chan { margin: 20px 0 0; text-align: center; }
+    .tk-lien-ket { color: inherit; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container tk-trang">
+      <div class="tk-khung">
+        <h1>Đăng ký tài khoản</h1>
+        <p class="tk-phu">Một tài khoản dùng cho mọi dịch vụ của Lumen 24.</p>
+
+        <p id="thong-bao" class="tk-thong-bao" hidden></p>
+
+        <form id="form-dang-ky" novalidate>
+          <div class="tk-truong">
+            <label for="ho-ten">Họ tên</label>
+            <input id="ho-ten" name="ho-ten" type="text" autocomplete="name" required>
+          </div>
+
+          <div class="tk-truong">
+            <label for="lien-he">Email hoặc số điện thoại</label>
+            <input id="lien-he" name="lien-he" type="text" autocomplete="username" inputmode="email" required>
+            <p class="tk-goi-y">Ví dụ ten@example.com hoặc 0912345678 (10 chữ số).</p>
+          </div>
+
+          <div class="tk-truong">
+            <label for="loai-khach">Loại khách</label>
+            <select id="loai-khach" name="loai-khach" required>
+              <option value="">-- Chọn loại khách --</option>
+              <option value="student">Sinh viên</option>
+              <option value="worker">Đi làm</option>
+            </select>
+          </div>
+
+          <div class="tk-truong">
+            <label for="don-vi">Trường hoặc đơn vị (không bắt buộc)</label>
+            <input id="don-vi" name="don-vi" type="text" autocomplete="organization">
+          </div>
+
+          <div class="tk-truong">
+            <label for="mat-khau">Mật khẩu</label>
+            <input id="mat-khau" name="mat-khau" type="password" autocomplete="new-password" required>
+          </div>
+
+          <div class="tk-truong">
+            <label for="nhac-lai">Nhắc lại mật khẩu</label>
+            <input id="nhac-lai" name="nhac-lai" type="password" autocomplete="new-password" required>
+          </div>
+
+          <button id="nut-gui" class="tk-btn" type="submit">Đăng ký</button>
+        </form>
+
+        <p class="tk-ghi-chu">Mật khẩu chỉ là chuỗi giả cho bài tập, không mã hóa. Đừng dùng mật khẩu thật của bạn.</p>
+
+        <p class="tk-chan">Đã có tài khoản? <a class="tk-lien-ket" href="./dang-nhap.html">Đăng nhập</a></p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { saveUser, login } from './js/api.js';
+
+    renderLayout();
+
+    const form = document.getElementById('form-dang-ky');
+    const nutGui = document.getElementById('nut-gui');
+    const khungThongBao = document.getElementById('thong-bao');
+
+    function hienThongBao(loai, noiDung) {
+      khungThongBao.textContent = noiDung;
+      khungThongBao.className = 'tk-thong-bao tk-thong-bao--' + loai;
+      khungThongBao.setAttribute('role', loai === 'loi' ? 'alert' : 'status');
+      khungThongBao.hidden = false;
+    }
+
+    function anThongBao() {
+      khungThongBao.hidden = true;
+      khungThongBao.textContent = '';
+    }
+
+    form.addEventListener('submit', async (suKien) => {
+      suKien.preventDefault();
+      anThongBao();
+
+      const hoTen = form.elements['ho-ten'].value;
+      const lienHe = form.elements['lien-he'].value;
+      const loaiKhach = form.elements['loai-khach'].value;
+      const donVi = form.elements['don-vi'].value;
+      const matKhau = form.elements['mat-khau'].value;
+      const nhacLai = form.elements['nhac-lai'].value;
+
+      if (hoTen.trim() === '') {
+        hienThongBao('loi', 'Vui lòng nhập họ tên.');
+        form.elements['ho-ten'].focus();
+        return;
+      }
+      if (lienHe.trim() === '') {
+        hienThongBao('loi', 'Vui lòng nhập email hoặc số điện thoại.');
+        form.elements['lien-he'].focus();
+        return;
+      }
+      if (loaiKhach === '') {
+        hienThongBao('loi', 'Vui lòng chọn loại khách (sinh viên hoặc đi làm).');
+        form.elements['loai-khach'].focus();
+        return;
+      }
+      if (matKhau === '') {
+        hienThongBao('loi', 'Vui lòng nhập mật khẩu.');
+        form.elements['mat-khau'].focus();
+        return;
+      }
+      if (matKhau !== nhacLai) {
+        hienThongBao('loi', 'Mật khẩu nhắc lại không khớp. Vui lòng nhập lại.');
+        form.elements['nhac-lai'].focus();
+        return;
+      }
+
+      nutGui.disabled = true;
+      nutGui.textContent = 'Đang đăng ký...';
+      try {
+        await saveUser({
+          name: hoTen,
+          contact: lienHe,
+          passwordDemo: matKhau,
+          role: 'guest',
+          type: loaiKhach,
+          org: donVi,
+        });
+        // saveUser không tự đăng nhập, nên đăng nhập luôn để trang tài khoản mở được.
+        await login(lienHe, matKhau);
+        hienThongBao('ok', 'Đăng ký thành công. Đang chuyển sang trang tài khoản...');
+        window.location.href = './tai-khoan.html';
+      } catch (loi) {
+        hienThongBao('loi', loi && loi.message ? loi.message : 'Không đăng ký được. Vui lòng thử lại.');
+        nutGui.disabled = false;
+        nutGui.textContent = 'Đăng ký';
+      }
+    });
+  </script>
+</body>
+</html>
