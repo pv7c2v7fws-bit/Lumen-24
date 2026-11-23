@@ -34,9 +34,14 @@
     }
     .ph-the--tamngung { opacity: .7; }
 
+    /* Khung ảnh: thử nạp ảnh thật; nếu chưa có file thì hiện khối giữ chỗ (class is-placeholder). */
     .ph-anh {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem;
-      aspect-ratio: 16 / 10; border-radius: 12px; text-align: center;
+      aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; text-align: center;
+      background: #f3ead6;
+    }
+    .ph-anh img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .ph-anh.is-placeholder {
       background: linear-gradient(135deg, #fdebb8 0%, #f7d17a 55%, #e9b44c 100%);
       color: rgba(31, 45, 61, .75);
     }
@@ -88,6 +93,16 @@
 
     renderLayout();
 
+    // ---------- Đường dẫn ảnh thật theo mã phòng ----------
+    // Bạn tải ảnh lên thư mục images/ với ĐÚNG các tên dưới đây là ảnh tự hiện.
+    // Chưa có file thì trang tự dùng khối "Ảnh minh họa".
+    const ANH_PHONG = {
+      r35: './images/room-3-5.jpg',
+      r710a: './images/room-7-10-1.jpg',
+      r710b: './images/room-7-10-2.jpg',
+      r1520: './images/room-15-20.jpg',
+    };
+
     // ---------- Hàm hỗ trợ ----------
 
     /** Tạo phần tử DOM an toàn: chuỗi luôn thành văn bản, không bị hiểu là HTML. */
@@ -118,12 +133,29 @@
         : phong.capacityMin + '-' + phong.capacityMax + ' người';
     }
 
-    /** Khối ảnh giữ chỗ (nền gradient, chú thích "Ảnh minh họa"). */
-    function khoiAnh(tenPhong) {
-      return el('div', { class: 'ph-anh', role: 'img', 'aria-label': 'Ảnh minh họa: ' + tenPhong }, [
-        el('span', { class: 'ph-anh__bieutuong', 'aria-hidden': 'true', text: '🪑' }),
-        el('span', { class: 'ph-anh__chuthich', text: 'Ảnh minh họa' }),
-      ]);
+    /**
+     * Khung ảnh: thử nạp ảnh thật từ duongDan; nếu file chưa có hoặc lỗi thì
+     * đổi sang khối giữ chỗ (nền gradient, chú thích "Ảnh minh họa").
+     */
+    function khoiAnh(duongDan, tenPhong) {
+      const khung = el('div', { class: 'ph-anh' });
+      const hienGiuCho = () => {
+        khung.classList.add('is-placeholder');
+        khung.setAttribute('role', 'img');
+        khung.setAttribute('aria-label', 'Ảnh minh họa: ' + tenPhong);
+        khung.replaceChildren(
+          el('span', { class: 'ph-anh__bieutuong', 'aria-hidden': 'true', text: '🪑' }),
+          el('span', { class: 'ph-anh__chuthich', text: 'Ảnh minh họa' })
+        );
+      };
+      if (!duongDan) {
+        hienGiuCho();
+        return khung;
+      }
+      const anh = el('img', { src: duongDan, alt: tenPhong, loading: 'lazy' });
+      anh.addEventListener('error', hienGiuCho, { once: true });
+      khung.append(anh);
+      return khung;
     }
 
     function dongThongTin(nhan, noiDung) {
@@ -155,7 +187,7 @@
           : el('p', { class: 'ph-tamngung-nhan', text: 'Phòng tạm ngưng hoạt động' });
 
         luoi.append(el('article', { class: 'ph-the' + (phong.active ? '' : ' ph-the--tamngung') }, [
-          khoiAnh(phong.name),
+          khoiAnh(ANH_PHONG[phong.id], phong.name),
           el('span', { class: 'ph-tang', text: 'Tầng ' + phong.floor }),
           el('h2', { text: phong.name }),
           el('dl', { class: 'ph-thongtin' }, [
