@@ -512,4 +512,347 @@ export function getCurrentUser() {
 // Thanh toán QR giả (Bước 4a, M6)
 // =============================================================================
 //
-// Đối tượng thanh toán
+// Đối tượng thanh toán (lưu trong khóa lumen-payments, dạng mảng):
+//   id            'p-' + mốc thời gian mô phỏng (hệ 36) + 4 ký tự ngẫu nhiên
+//   loai          một giá trị của LOAI_GIAO_DICH
+//   refId         mã đối tượng liên quan (phiên, đặt phòng, đơn đồ, đơn in...), có thể null
+//   userId        id khách
+//   tien          số tiền, số nguyên đồng
+//   phi           phí cổng thanh toán, số nguyên đồng (config.QUY_TAC.phiCongThanhToanPhanTram)
+//   trangThai     một giá trị của TRANG_THAI_THANH_TOAN
+//   taoLuc        ISO, giờ mô phỏng lúc tạo
+//   hetHanLuc     ISO, hạn thanh toán
+//   thanhToanLuc  ISO khi đã thanh toán, ngược lại null
+//   thuCong       true nếu tạo lúc đang bật chế độ gián đoạn (quy trình thủ công, Bước 11)
+//   xuLyCocLuc    (thêm) ISO lúc hoanCoc xử lý cọc (da-hoan hoặc mat-coc), ngược lại null
+
+/**
+ * Hạn thanh toán của một đơn: dùng lại thời gian giữ phòng 10 phút (R19, QUY_TAC.thoiGianGiuPhongPhut)
+ * cho MỌI loại giao dịch, vì M6 quy định đồng hồ đếm ngược 10 phút. Nếu config thiếu khóa thì rơi về 10 phút.
+ */
+function hanThanhToanMs() {
+  const phut = config.QUY_TAC && Number.isFinite(config.QUY_TAC.thoiGianGiuPhongPhut)
+    ? config.QUY_TAC.thoiGianGiuPhongPhut
+    : 10; // dự phòng: 10 phút theo M6
+  return phut * MOT_PHUT_MS;
+}
+
+/** Phí cổng thanh toán (số nguyên đồng) của một số tiền, theo phần trăm trong config (mặc định 1%). */
+function tinhPhiCong(tien) {
+  const phanTram = config.QUY_TAC && Number.isFinite(config.QUY_TAC.phiCongThanhToanPhanTram)
+    ? config.QUY_TAC.phiCongThanhToanPhanTram
+    : 1;
+  return Math.round(tien * phanTram / 100);
+}
+
+/** Đọc mảng thanh toán từ store. Chưa có hoặc hỏng thì dùng dữ liệu seed (mảng rỗng), chưa ghi lại. */
+function docThanhToan() {
+  const danhSach = store.get(KHOA_THANH_TOAN);
+  return Array.isArray(danhSach) ? danhSach : taoThanhToanSeed();
+}
+
+/**
+ * Đổi mọi đơn cho-thanh-toan đã quá hạn (now() >= hetHanLuc) thành het-han. Sửa trực tiếp mảng.
+ * Trả về true nếu có đơn bị đổi. Không có bộ hẹn giờ ngầm: kiểm tra mỗi khi đọc hoặc xử lý.
+ */
+function capNhatHetHan(danhSach) {
+  const bayGio = now().getTime();
+  let coDoi = false;
+  for (const tt of danhSach) {
+    if (tt.trangThai === TRANG_THAI_THANH_TOAN.CHO && bayGio >= Date.parse(tt.hetHanLuc)) {
+      tt.trangThai = TRANG_THAI_THANH_TOAN.HET_HAN;
+      coDoi = true;
+    }
+  }
+  return coDoi;
+}
+
+/** Đọc mảng thanh toán, đã cập nhật trạng thái hết hạn (và ghi lại store nếu có đơn đổi). */
+function docThanhToanDaCapNhat() {
+  const danhSach = docThanhToan();
+  if (capNhatHetHan(danhSach)) store.set(KHOA_THANH_TOAN, danhSach);
+  return danhSach;
+}
+
+/** Id thanh toán mới: p- + thời gian mô phỏng (hệ 36) + 4 ký tự ngẫu nhiên; lặp lại nếu trùng (như id tài khoản, G-id). */
+function taoIdThanhToan(danhSach) {
+  const phanThoiGian = now().getTime().toString(36);
+  let id;
+  do {
+    id = 'p-' + phanThoiGian + chuoiNgauNhien(4);
+  } while (danhSach.some((tt) => tt.id === id));
+  return id;
+}
+
+/** Tìm đơn theo id; không thấy thì ném lỗi tiếng Việt. Trả về { danhSach, viTri }. */
+function timThanhToan(danhSach, id) {
+  const viTri = typeof id === 'string' && id !== '' ? danhSach.findIndex((tt) => tt.id === id) : -1;
+  if (viTri === -1) {
+    throw new Error('Không tìm thấy đơn thanh toán. Có thể mã đơn bị sai hoặc dữ liệu đã được đặt lại.');
+  }
+  return { danhSach, viTri };
+}
+
+/** Thông báo lỗi khi đơn không còn ở trạng thái cho-thanh-toan (trừ het-han do xử lý riêng). */
+function loiTrangThaiKhongChoXuLy(trangThai) {
+  switch (trangThai) {
+    case TRANG_THAI_THANH_TOAN.DA_THANH_TOAN:
+    case TRANG_THAI_THANH_TOAN.DA_HOAN:
+    case TRANG_THAI_THANH_TOAN.MAT_COC:
+      return 'Đơn này đã được thanh toán trước đó, không thể xử lý lần nữa.';
+    case TRANG_THAI_THANH_TOAN.THAT_BAI:
+      return 'Đơn này đã thất bại. Vui lòng tạo đơn mới để thử lại.';
+    case TRANG_THAI_THANH_TOAN.HET_HAN:
+      return 'Đơn này đã hết hạn thanh toán. Vui lòng tạo đơn mới.';
+    default:
+      return 'Đơn này không ở trạng thái chờ thanh toán.';
+  }
+}
+
+/**
+ * Dùng chung cho xacNhanThanhToan và thatBaiThanhToan: kiểm tra đơn đang chờ thanh toán.
+ * Quá hạn thì ghi het-han vào store rồi ném lỗi. Không ở cho-thanh-toan thì ném lỗi.
+ * Trả về đối tượng đơn (tham chiếu trong mảng) khi hợp lệ.
+ */
+function layDonDangCho(danhSach, id) {
+  const { viTri } = timThanhToan(danhSach, id);
+  const tt = danhSach[viTri];
+  if (tt.trangThai === TRANG_THAI_THANH_TOAN.CHO && now().getTime() >= Date.parse(tt.hetHanLuc)) {
+    tt.trangThai = TRANG_THAI_THANH_TOAN.HET_HAN;
+    store.set(KHOA_THANH_TOAN, danhSach);
+    throw new Error('Đơn đã hết hạn thanh toán sau ' + (hanThanhToanMs() / MOT_PHUT_MS) + ' phút. Vui lòng tạo đơn mới.');
+  }
+  if (tt.trangThai !== TRANG_THAI_THANH_TOAN.CHO) {
+    throw new Error(loiTrangThaiKhongChoXuLy(tt.trangThai));
+  }
+  return tt;
+}
+
+/** Chuyển Date, số (mili giây) hoặc chuỗi ngày giờ thành mili giây; không hợp lệ thì ném lỗi tiếng Việt. */
+function chuyenMs(giaTri, tenTruong) {
+  let ms = NaN;
+  if (giaTri instanceof Date) ms = giaTri.getTime();
+  else if (typeof giaTri === 'number') ms = giaTri;
+  else if (typeof giaTri === 'string') ms = Date.parse(giaTri);
+  if (!Number.isFinite(ms)) {
+    throw new Error('Thời điểm "' + tenTruong + '" không hợp lệ. Hãy truyền Date, số mili giây hoặc chuỗi ngày giờ ISO.');
+  }
+  return ms;
+}
+
+/** Ngày theo giờ Việt Nam dạng YYYY-MM-DD của một mốc mili giây. (new Date(số) chỉ đổi định dạng, không đọc giờ máy.) */
+function ngayGioVN(ms) {
+  return new Date(ms + LECH_GIO_VN_MS).toISOString().slice(0, 10);
+}
+
+/** Chuẩn hóa tham số ngày thành YYYY-MM-DD (giờ Việt Nam). Bỏ trống thì lấy ngày của now(). */
+function chuanHoaNgay(ngay) {
+  if (ngay === undefined || ngay === null || ngay === '') return ngayGioVN(now().getTime());
+  if (typeof ngay === 'string' && MAU_NGAY.test(ngay)) return ngay;
+  return ngayGioVN(chuyenMs(ngay, 'ngày'));
+}
+
+/**
+ * Tạo một đơn thanh toán mới, trạng thái cho-thanh-toan. Trả về đơn vừa lưu. Trễ 200-500 ms.
+ * Tham số: loai (một giá trị của LOAI_GIAO_DICH), refId (có thể bỏ trống), userId, tien (>= 0, làm tròn đến đồng).
+ * phi = tien x phiCongThanhToanPhanTram / 100, làm tròn đến đồng (89.000đ -> 890đ).
+ * hetHanLuc = taoLuc + 10 phút (xem hanThanhToanMs).
+ * Nếu đang bật chế độ gián đoạn (lumen-outage = true): đơn vẫn được lưu nhưng có thuCong: true;
+ * đây là điểm vào cho chế độ dự phòng ở Bước 11, hệ thống không tự xử lý thanh toán.
+ */
+export async function taoThanhToan({ loai, refId = null, userId, tien } = {}) {
+  await tre();
+  if (!DANH_SACH_LOAI.includes(loai)) {
+    throw new Error('Loại giao dịch không hợp lệ. Chỉ nhận: ' + DANH_SACH_LOAI.join(', ') + '.');
+  }
+  if (typeof userId !== 'string' || userId === '') {
+    throw new Error('Thiếu thông tin khách hàng. Vui lòng đăng nhập rồi thử lại.');
+  }
+  if (typeof tien !== 'number' || !Number.isFinite(tien) || tien < 0) {
+    throw new Error('Số tiền không hợp lệ. Số tiền phải là số không âm.');
+  }
+  const soTien = Math.round(tien);
+
+  const danhSach = docThanhToanDaCapNhat();
+  const bayGio = now();
+  const thuCong = store.get(KHOA_GIAN_DOAN) === true;
+
+  const tt = {
+    id: taoIdThanhToan(danhSach),
+    loai,
+    refId: (refId === undefined || refId === '') ? null : refId,
+    userId,
+    tien: soTien,
+    phi: tinhPhiCong(soTien),
+    trangThai: TRANG_THAI_THANH_TOAN.CHO,
+    taoLuc: bayGio.toISOString(),
+    hetHanLuc: new Date(bayGio.getTime() + hanThanhToanMs()).toISOString(),
+    thanhToanLuc: null,
+    thuCong,
+    xuLyCocLuc: null,
+  };
+  danhSach.push(tt);
+  store.set(KHOA_THANH_TOAN, danhSach);
+  return saoSau(tt);
+}
+
+/**
+ * Lấy một đơn thanh toán theo id. Trễ 200-500 ms. Không thấy thì ném lỗi tiếng Việt.
+ * Nếu đơn đang chờ mà đã quá hạn thì được đổi thành het-han (và lưu lại) trước khi trả về.
+ */
+export async function layThanhToan(id) {
+  await tre();
+  const danhSach = docThanhToanDaCapNhat();
+  const { viTri } = timThanhToan(danhSach, id);
+  return saoSau(danhSach[viTri]);
+}
+
+/**
+ * Xác nhận thanh toán thành công (nút mô phỏng "Đã chuyển khoản"). Trả về đơn đã cập nhật. Trễ 200-500 ms.
+ * Chỉ đơn cho-thanh-toan mới xác nhận được, và chỉ MỘT lần: lần hai ném lỗi, không tạo giao dịch thứ hai.
+ * Đơn quá hạn: ghi het-han rồi ném lỗi.
+ */
+export async function xacNhanThanhToan(id) {
+  await tre();
+  const danhSach = docThanhToan();
+  const tt = layDonDangCho(danhSach, id);
+  tt.trangThai = TRANG_THAI_THANH_TOAN.DA_THANH_TOAN;
+  tt.thanhToanLuc = now().toISOString();
+  store.set(KHOA_THANH_TOAN, danhSach);
+  return saoSau(tt);
+}
+
+/**
+ * Ghi nhận thanh toán thất bại (nút mô phỏng "Thất bại"). Trả về đơn đã cập nhật. Trễ 200-500 ms.
+ * Cùng điều kiện với xacNhanThanhToan: đơn phải đang cho-thanh-toan và chưa quá hạn.
+ * Khách thử lại bằng cách tạo đơn mới.
+ */
+export async function thatBaiThanhToan(id) {
+  await tre();
+  const danhSach = docThanhToan();
+  const tt = layDonDangCho(danhSach, id);
+  tt.trangThai = TRANG_THAI_THANH_TOAN.THAT_BAI;
+  store.set(KHOA_THANH_TOAN, danhSach);
+  return saoSau(tt);
+}
+
+/**
+ * Xử lý tiền cọc phòng khi hủy hoặc không đến (R17). Trả về đơn đã cập nhật. Trễ 200-500 ms.
+ * Chỉ nhận đơn loại coc-phong đang da-thanh-toan.
+ * Tham số nhận từ ngoài, hàm không tự lấy giờ: gioBatDau (giờ bắt đầu đặt phòng) và huyLuc
+ * (lúc hủy; với "không đến" thì truyền một thời điểm sau gioBatDau). Mỗi giá trị là Date, mili giây hoặc chuỗi ISO.
+ *   còn >= hanHoanCocGio giờ (2 giờ, tính cả đúng 2 giờ 00 phút) -> da-hoan.
+ *   còn ít hơn (kể cả hủy sau giờ bắt đầu)                          -> mat-coc.
+ * Chỉ đổi trạng thái của đơn cọc, không tạo thêm giao dịch loại hoan-coc.
+ */
+export async function hoanCoc(id, { gioBatDau, huyLuc } = {}) {
+  await tre();
+  const msBatDau = chuyenMs(gioBatDau, 'gioBatDau');
+  const msHuy = chuyenMs(huyLuc, 'huyLuc');
+
+  const danhSach = docThanhToanDaCapNhat();
+  const { viTri } = timThanhToan(danhSach, id);
+  const tt = danhSach[viTri];
+  if (tt.loai !== LOAI_GIAO_DICH.COC_PHONG) {
+    throw new Error('Chỉ đơn cọc phòng mới được hoàn hoặc giữ cọc.');
+  }
+  if (tt.trangThai !== TRANG_THAI_THANH_TOAN.DA_THANH_TOAN) {
+    throw new Error(tt.trangThai === TRANG_THAI_THANH_TOAN.DA_HOAN || tt.trangThai === TRANG_THAI_THANH_TOAN.MAT_COC
+      ? 'Tiền cọc này đã được xử lý trước đó, không thể xử lý lại.'
+      : 'Chỉ đơn cọc đã thanh toán mới được hoàn hoặc giữ cọc.');
+  }
+
+  const hanHoanMs = config.QUY_TAC.hanHoanCocGio * MOT_GIO_MS;
+  tt.trangThai = (msBatDau - msHuy) >= hanHoanMs
+    ? TRANG_THAI_THANH_TOAN.DA_HOAN
+    : TRANG_THAI_THANH_TOAN.MAT_COC;
+  tt.xuLyCocLuc = now().toISOString();
+  store.set(KHOA_THANH_TOAN, danhSach);
+  return saoSau(tt);
+}
+
+/**
+ * Lịch sử giao dịch của một khách, MỚI NHẤT TRƯỚC (theo taoLuc). Trễ 200-500 ms.
+ * Bộ lọc tùy chọn: loai (một giá trị của LOAI_GIAO_DICH) và thang (chuỗi 'YYYY-MM', tính theo giờ Việt Nam).
+ */
+export async function lichSuGiaoDich(userId, { loai, thang } = {}) {
+  await tre();
+  if (typeof userId !== 'string' || userId === '') {
+    throw new Error('Thiếu thông tin khách hàng. Vui lòng đăng nhập rồi thử lại.');
+  }
+  if (loai !== undefined && loai !== null && loai !== '' && !DANH_SACH_LOAI.includes(loai)) {
+    throw new Error('Loại giao dịch không hợp lệ. Chỉ nhận: ' + DANH_SACH_LOAI.join(', ') + '.');
+  }
+  const locThang = (thang !== undefined && thang !== null && thang !== '') ? thang : null;
+  if (locThang !== null && !MAU_THANG.test(locThang)) {
+    throw new Error('Tháng không hợp lệ. Hãy dùng dạng YYYY-MM, ví dụ 2027-11.');
+  }
+  const locLoai = (loai !== undefined && loai !== null && loai !== '') ? loai : null;
+
+  const danhSach = docThanhToanDaCapNhat();
+  // reverse() trước để các đơn cùng taoLuc cũng đứng theo thứ tự mới nhất trước (sort ổn định).
+  const ketQua = danhSach
+    .filter((tt) => tt.userId === userId)
+    .filter((tt) => locLoai === null || tt.loai === locLoai)
+    .filter((tt) => locThang === null || ngayGioVN(Date.parse(tt.taoLuc)).slice(0, 7) === locThang)
+    .reverse()
+    .sort((a, b) => Date.parse(b.taoLuc) - Date.parse(a.taoLuc));
+  return saoSau(ketQua);
+}
+
+/**
+ * Đối soát một ngày cho quản lý (M6). Trễ 200-500 ms.
+ * Tham số ngay: 'YYYY-MM-DD', Date, mili giây hoặc ISO; bỏ trống thì lấy ngày của now() (giờ Việt Nam).
+ * Chỉ tính giao dịch da-thanh-toan có thanhToanLuc trong ngày đó. Trả về:
+ *   {
+ *     ngay: 'YYYY-MM-DD',
+ *     theoLoai: { 'mua-goi': { soGiaoDich, tong, phi }, ... },   // đủ mọi loại, loại không có thì 0
+ *     tongThu,        // tổng tien của các giao dịch tính
+ *     tongPhi,        // tổng phí cổng 1%
+ *     soGiaoDich,     // số giao dịch tính
+ *     soThatBai       // số đơn that-bai có taoLuc trong ngày đó
+ *   }
+ * Đơn cọc đã chuyển sang da-hoan hoặc mat-coc không còn là da-thanh-toan nên không nằm trong tổng này.
+ */
+export async function tongHopThu(ngay) {
+  await tre();
+  const ngayLoc = chuanHoaNgay(ngay);
+  const danhSach = docThanhToanDaCapNhat();
+
+  const theoLoai = {};
+  for (const loai of DANH_SACH_LOAI) theoLoai[loai] = { soGiaoDich: 0, tong: 0, phi: 0 };
+
+  let tongThu = 0;
+  let tongPhi = 0;
+  let soGiaoDich = 0;
+  let soThatBai = 0;
+
+  for (const tt of danhSach) {
+    if (tt.trangThai === TRANG_THAI_THANH_TOAN.DA_THANH_TOAN && tt.thanhToanLuc
+        && ngayGioVN(Date.parse(tt.thanhToanLuc)) === ngayLoc) {
+      const nhom = theoLoai[tt.loai] || (theoLoai[tt.loai] = { soGiaoDich: 0, tong: 0, phi: 0 });
+      nhom.soGiaoDich += 1;
+      nhom.tong += tt.tien;
+      nhom.phi += tt.phi;
+      tongThu += tt.tien;
+      tongPhi += tt.phi;
+      soGiaoDich += 1;
+    } else if (tt.trangThai === TRANG_THAI_THANH_TOAN.THAT_BAI && ngayGioVN(Date.parse(tt.taoLuc)) === ngayLoc) {
+      soThatBai += 1;
+    }
+  }
+
+  return { ngay: ngayLoc, theoLoai, tongThu, tongPhi, soGiaoDich, soThatBai };
+}
+
+/**
+ * Bật hoặc tắt chế độ "Web và cổng thanh toán gián đoạn" (khóa lumen-outage). Trễ 200-500 ms.
+ * bat: truthy là bật, falsy là tắt. Trả về giá trị boolean đã lưu. Các tab khác thấy ngay qua store.
+ * Đơn đã tạo trước đó không bị đổi; chỉ đơn tạo SAU khi bật mới có cờ thuCong: true.
+ */
+export async function batTatGianDoan(bat) {
+  await tre();
+  const giaTri = Boolean(bat);
+  store.set(KHOA_GIAN_DOAN, giaTri);
+  return giaTri;
+}
