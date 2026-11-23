@@ -1,0 +1,120 @@
+<!doctype html>
+<!-- quy-tac.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quy tắc của quán – Lumen 24</title>
+  <meta name="description" content="Quy tắc giữ yên lặng, giữ chỗ, đặt phòng họp, hủy và cọc phòng tại Lumen 24.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .pg-main { padding-bottom: 48px; }
+    .pg-head { padding: 40px 0 16px; }
+    .pg-head h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .pg-head p { margin: 0; max-width: 62ch; line-height: 1.6; }
+    .pg-sec { padding: 20px 0; }
+    .pg-small { font-size: .85rem; opacity: .75; }
+    .pg-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+    .pg-card {
+      background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 10px rgba(31, 42, 68, .06);
+    }
+    .pg-card h2 { margin: 0 0 12px; font-size: 1.2rem; }
+    .pg-list { margin: 0; padding-left: 1.2em; line-height: 1.65; }
+    .pg-list li + li { margin-top: 8px; }
+    .pg-foot { margin-top: 20px; line-height: 1.6; }
+    @media (min-width: 768px) {
+      .pg-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="pg-main">
+    <div class="container">
+      <header class="pg-head">
+        <h1>Quy tắc của quán</h1>
+        <p>Vài quy tắc ngắn để mọi người cùng học và làm việc thoải mái. Các con số dưới đây lấy từ cấu hình của quán.</p>
+      </header>
+
+      <div class="pg-sec">
+        <div class="pg-grid pg-grid--2">
+          <section class="pg-card" aria-labelledby="nhom-yen-lang">
+            <h2 id="nhom-yen-lang">Yên lặng và trao đổi</h2>
+            <ul class="pg-list">
+              <li>Giữ yên lặng ở khu học.</li>
+              <li>Gọi điện hoặc trao đổi nhóm ở khu riêng hoặc trong phòng họp.</li>
+            </ul>
+          </section>
+
+          <section class="pg-card" aria-labelledby="nhom-giu-cho">
+            <h2 id="nhom-giu-cho">Giữ chỗ</h2>
+            <ul class="pg-list">
+              <li>Không để đồ giữ chỗ khi vắng quá <strong><span data-cfg="vang"></span> phút</strong>.</li>
+              <li>Khi bạn bấm “Tạm rời”, quá <span data-cfg="vang"></span> phút hệ thống sẽ nhắc nhân viên, và nhân viên có thể giải phóng chỗ.</li>
+              <li>Trong lúc tạm rời, giờ của gói vẫn chạy.</li>
+            </ul>
+          </section>
+
+          <section class="pg-card" aria-labelledby="nhom-tang-3">
+            <h2 id="nhom-tang-3">Giờ mở các tầng</h2>
+            <ul class="pg-list">
+              <li>Tầng 1 và tầng 2 mở cửa 24/7.</li>
+              <li>Chỗ ngồi tự do tầng 3 mở <span data-cfg="caoDiem"></span> hằng ngày. Ngoài khung giờ đó, tầng 3 chỉ mở phòng họp khi có đặt phòng.</li>
+              <li>Từ <span data-cfg="dem"></span> chỉ tầng 1 và tầng 2 hoạt động.</li>
+            </ul>
+          </section>
+
+          <section class="pg-card" aria-labelledby="nhom-coc">
+            <h2 id="nhom-coc">Đặt phòng họp, hủy và cọc</h2>
+            <ul class="pg-list">
+              <li>Đặt phòng không cần báo trước và không cần duyệt, nhưng bắt buộc đặt cọc.</li>
+              <li>Tiền cọc bằng giá chuẩn của phòng cho <span data-cfg="coc"></span> giờ, và được trừ vào tổng tiền khi bạn dùng phòng.</li>
+              <li>Hủy khi còn từ <strong><span data-cfg="hoan"></span> giờ</strong> trở lên trước giờ bắt đầu: hoàn cọc.</li>
+              <li>Hủy muộn hơn mốc đó: mất cọc.</li>
+              <li>Không đến: quá <strong><span data-cfg="khongDen"></span> phút</strong> sau giờ bắt đầu mà chưa check-in phòng thì tính là “Không đến” và mất cọc. Nhân viên có thể bỏ qua trong trường hợp đặc biệt.</li>
+            </ul>
+          </section>
+        </div>
+
+        <p class="pg-foot pg-small">
+          Chi tiết hoàn cọc xem tại <a href="./chinh-sach-hoan-coc.html">Chính sách hoàn cọc</a>.
+          Bạn muốn đặt phòng? Xem <a href="./phong-hop.html">danh sách phòng họp</a>.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { getConfig } from './js/api.js';
+
+    renderLayout();
+
+    // Khung giờ dạng "19h – 23h". Khung qua nửa đêm (23h – 6h) vẫn đọc đúng.
+    const dinhDangKhung = (khung) => `${khung.tu}h – ${khung.den}h`;
+
+    try {
+      const cfg = getConfig();
+      const quyTac = cfg.QUY_TAC;
+      const giaTri = {
+        vang: quyTac.thoiGianVangPhut,
+        hoan: quyTac.hanHoanCocGio,
+        khongDen: quyTac.choKhongDenPhut,
+        coc: quyTac.cocPhongSoGio,
+        caoDiem: dinhDangKhung(cfg.KHUNG_GIO.caoDiem),
+        dem: dinhDangKhung(cfg.KHUNG_GIO.dem),
+      };
+      document.querySelectorAll('[data-cfg]').forEach((node) => {
+        const v = giaTri[node.dataset.cfg];
+        node.textContent = v === undefined ? '?' : String(v);
+      });
+    } catch (loi) {
+      console.error('Không đọc được cấu hình:', loi);
+      document.querySelectorAll('[data-cfg]').forEach((node) => { node.textContent = '?'; });
+    }
+  </script>
+</body>
+</html>
