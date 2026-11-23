@@ -1,0 +1,361 @@
+<!-- tai-khoan.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tài khoản – Lumen 24</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .tk-trang { padding: 32px 0 56px; }
+    .tk-dau { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .tk-dau h1 { margin: 0; font-size: 1.6rem; }
+    .tk-tab-ds {
+      list-style: none;
+      margin: 0 0 20px;
+      padding: 0 0 4px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    .tk-tab {
+      display: inline-block;
+      white-space: nowrap;
+      min-height: 44px;
+      line-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid #b9c0d0;
+      color: inherit;
+      text-decoration: none;
+      font-weight: 600;
+      background: #fff;
+    }
+    .tk-tab[aria-current="page"] { background: var(--mau-nhan, #f2b134); border-color: var(--mau-nhan, #f2b134); color: #1b2a49; }
+    .tk-tab:focus-visible, .tk-btn:focus-visible, .tk-truong input:focus-visible, .tk-truong select:focus-visible,
+    .tk-lien-ket:focus-visible {
+      outline: 3px solid var(--mau-nhan, #f2b134);
+      outline-offset: 2px;
+    }
+    .tk-the {
+      background: var(--mau-nen-the, #ffffff);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(20, 30, 60, 0.10);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .tk-the h2 { margin: 0 0 12px; font-size: 1.15rem; }
+    .tk-luoi { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .tk-dl { margin: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .tk-dl dt { font-size: 0.85rem; color: #55607a; }
+    .tk-dl dd { margin: 2px 0 0; font-weight: 600; word-break: break-word; }
+    .tk-so-gio { font-size: 1.8rem; }
+    .tk-truong { margin-bottom: 16px; }
+    .tk-truong label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .tk-truong input[type="text"], .tk-truong select {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #b9c0d0;
+      border-radius: 10px;
+      background: #fff;
+      color: inherit;
+    }
+    .tk-hop-kiem { display: flex; gap: 10px; align-items: flex-start; }
+    .tk-hop-kiem input { width: 22px; height: 22px; margin-top: 2px; flex: none; }
+    .tk-hop-kiem label { margin: 0; font-weight: 400; }
+    .tk-goi-y { margin: 4px 0 0; font-size: 0.85rem; color: #55607a; }
+    .tk-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 20px;
+      font: inherit;
+      font-weight: 600;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--mau-nhan, #f2b134);
+      color: #1b2a49;
+    }
+    .tk-btn--vien { background: transparent; border: 2px solid #b9c0d0; }
+    .tk-btn--nguy { background: #b3261e; color: #fff; }
+    .tk-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    .tk-thong-bao { margin: 0 0 16px; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+    .tk-thong-bao[hidden] { display: none; }
+    .tk-thong-bao--loi { background: #fdecea; color: #8a1c14; border: 1px solid #f3b7b1; }
+    .tk-thong-bao--ok { background: #e8f6ee; color: #14532d; border: 1px solid #a7d7b9; }
+    .tk-thong-bao--tin { background: #eef3fb; color: #1b2a49; border: 1px solid #c4d2ea; }
+    .tk-vung-nguy { border: 1px solid #f3b7b1; }
+    .tk-phu { color: #55607a; margin: 0 0 12px; font-size: 0.95rem; }
+    .tk-lien-ket { color: inherit; font-weight: 600; }
+    .tk-rong { color: #55607a; margin: 0; }
+    @media (min-width: 768px) {
+      .tk-luoi { grid-template-columns: 1fr 1fr; }
+      .tk-dl { grid-template-columns: 1fr 1fr; }
+      .tk-ho-so { max-width: 560px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container tk-trang" id="goc-trang">
+      <p class="tk-rong" id="dang-tai" role="status">Đang tải tài khoản...</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { getCurrentUser, saveUser, deleteUser, logout } from './js/api.js';
+
+    renderLayout();
+
+    const DANH_SACH_TAB = [
+      { ma: 'tong-quan', nhan: 'Tổng quan' },
+      { ma: 'ho-so', nhan: 'Hồ sơ' },
+      { ma: 'giao-dich', nhan: 'Giao dịch' },
+      { ma: 'diem', nhan: 'Điểm' },
+      { ma: 'dat-phong', nhan: 'Đặt phòng' },
+      { ma: 'thong-bao', nhan: 'Thông báo' },
+    ];
+    const NHAN_LOAI_KHACH = { student: 'Sinh viên', worker: 'Đi làm' };
+    const NHAN_VAI_TRO = { guest: 'Khách', staff: 'Nhân viên', manager: 'Quản lý' };
+
+    /** Tạo phần tử DOM an toàn: chuỗi luôn thành văn bản (không dùng innerHTML). */
+    function el(tag, attrs = {}, children = []) {
+      const node = document.createElement(tag);
+      for (const [khoa, giaTri] of Object.entries(attrs)) {
+        if (giaTri === null || giaTri === undefined || giaTri === false) continue;
+        if (khoa === 'class') node.className = giaTri;
+        else if (khoa === 'text') node.textContent = giaTri;
+        else node.setAttribute(khoa, giaTri === true ? '' : giaTri);
+      }
+      for (const con of [].concat(children)) {
+        if (con === null || con === undefined || con === false) continue;
+        node.append(con);
+      }
+      return node;
+    }
+
+    function dinhDangGio(so) {
+      const n = Number.isFinite(so) ? so : 0;
+      return n.toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' giờ';
+    }
+
+    function layTabHienTai() {
+      const ma = new URLSearchParams(window.location.search).get('tab');
+      return DANH_SACH_TAB.some((t) => t.ma === ma) ? ma : 'tong-quan';
+    }
+
+    function hienThongBao(khung, loai, noiDung) {
+      khung.textContent = noiDung;
+      khung.className = 'tk-thong-bao tk-thong-bao--' + loai;
+      khung.setAttribute('role', loai === 'loi' ? 'alert' : 'status');
+      khung.hidden = false;
+    }
+
+    // ---------- Phân quyền: chưa đăng nhập thì chuyển sang trang đăng nhập ----------
+    const nguoi = getCurrentUser();
+    const goc = document.getElementById('goc-trang');
+
+    if (!nguoi) {
+      window.location.replace('./dang-nhap.html');
+    } else {
+      khoiTao();
+    }
+
+    function khoiTao() {
+      goc.textContent = '';
+      const tab = layTabHienTai();
+
+      // Đầu trang: tiêu đề và nút đăng xuất
+      const nutDangXuat = el('button', { class: 'tk-btn tk-btn--vien', type: 'button', text: 'Đăng xuất' });
+      nutDangXuat.addEventListener('click', async () => {
+        nutDangXuat.disabled = true;
+        nutDangXuat.textContent = 'Đang đăng xuất...';
+        try {
+          await logout();
+          window.location.href = './dang-nhap.html';
+        } catch (loi) {
+          nutDangXuat.disabled = false;
+          nutDangXuat.textContent = 'Đăng xuất';
+        }
+      });
+      goc.append(el('div', { class: 'tk-dau' }, [
+        el('h1', { text: 'Tài khoản của tôi' }),
+        nutDangXuat,
+      ]));
+
+      // Cảnh báo cho nhân viên và quản lý (vẫn được xem trang)
+      if (nguoi.role !== 'guest') {
+        goc.append(el('p', {
+          class: 'tk-thong-bao tk-thong-bao--tin',
+          role: 'note',
+          text: 'Trang này dành cho khách. Bạn đang xem với vai trò ' + (NHAN_VAI_TRO[nguoi.role] || nguoi.role).toLowerCase() + '.',
+        }));
+      }
+
+      // Thanh tab
+      const dsTab = el('ul', { class: 'tk-tab-ds' });
+      for (const t of DANH_SACH_TAB) {
+        const href = t.ma === 'tong-quan' ? './tai-khoan.html' : './tai-khoan.html?tab=' + t.ma;
+        dsTab.append(el('li', {}, el('a', {
+          class: 'tk-tab',
+          href,
+          text: t.nhan,
+          'aria-current': t.ma === tab ? 'page' : null,
+        })));
+      }
+      goc.append(el('nav', { 'aria-label': 'Các mục của tài khoản' }, dsTab));
+
+      // Nội dung tab
+      if (tab === 'tong-quan') goc.append(taoTongQuan());
+      else if (tab === 'ho-so') goc.append(taoHoSo());
+      else goc.append(el('div', { class: 'tk-the' }, [
+        el('h2', { text: DANH_SACH_TAB.find((t) => t.ma === tab).nhan }),
+        el('p', { class: 'tk-rong', text: 'Sẽ có ở bước sau' }),
+      ]));
+    }
+
+    // ---------- Tab Tổng quan ----------
+    function taoTongQuan() {
+      const mucThongTin = (nhan, giaTri, lop) => el('div', {}, [
+        el('dt', { text: nhan }),
+        el('dd', { class: lop || null, text: giaTri }),
+      ]);
+
+      const theThongTin = el('section', { class: 'tk-the' }, [
+        el('h2', { text: 'Thông tin chung' }),
+        el('dl', { class: 'tk-dl' }, [
+          mucThongTin('Họ tên', nguoi.name),
+          mucThongTin('Mã khách', nguoi.code),
+          mucThongTin('Loại khách', NHAN_LOAI_KHACH[nguoi.type] || 'Chưa chọn'),
+          mucThongTin('Số giờ tích lũy', dinhDangGio(nguoi.totalHours), 'tk-so-gio'),
+        ]),
+      ]);
+
+      const thePhien = el('section', { class: 'tk-the' }, [
+        el('h2', { text: 'Phiên đang ngồi' }),
+        el('p', { class: 'tk-rong', text: 'Phiên đang ngồi: chưa có' }),
+      ]);
+
+      return el('div', { class: 'tk-luoi' }, [theThongTin, thePhien]);
+    }
+
+    // ---------- Tab Hồ sơ ----------
+    function taoHoSo() {
+      const khungThongBao = el('p', { class: 'tk-thong-bao', hidden: true });
+
+      const oHoTen = el('input', { id: 'ho-ten', name: 'ho-ten', type: 'text', autocomplete: 'name', required: true });
+      oHoTen.value = nguoi.name || '';
+
+      const oLoai = el('select', { id: 'loai-khach', name: 'loai-khach' }, [
+        el('option', { value: '', text: '-- Chưa chọn --' }),
+        el('option', { value: 'student', text: 'Sinh viên' }),
+        el('option', { value: 'worker', text: 'Đi làm' }),
+      ]);
+      oLoai.value = nguoi.type || '';
+
+      const oDonVi = el('input', { id: 'don-vi', name: 'don-vi', type: 'text', autocomplete: 'organization' });
+      oDonVi.value = nguoi.org || '';
+
+      const oAnTen = el('input', { id: 'an-ten', name: 'an-ten', type: 'checkbox' });
+      oAnTen.checked = Boolean(nguoi.hideOnBoard);
+
+      const nutLuu = el('button', { class: 'tk-btn', type: 'submit', text: 'Lưu thay đổi' });
+
+      const form = el('form', { novalidate: true }, [
+        el('div', { class: 'tk-truong' }, [el('label', { for: 'ho-ten', text: 'Họ tên' }), oHoTen]),
+        el('div', { class: 'tk-truong' }, [
+          el('label', { for: 'loai-khach', text: 'Loại khách' }),
+          oLoai,
+        ]),
+        el('div', { class: 'tk-truong' }, [
+          el('label', { for: 'don-vi', text: 'Trường hoặc đơn vị (không bắt buộc)' }),
+          oDonVi,
+        ]),
+        el('div', { class: 'tk-truong' }, [
+          el('div', { class: 'tk-hop-kiem' }, [
+            oAnTen,
+            el('label', { for: 'an-ten', text: 'Ẩn tên của tôi khỏi bảng vinh danh' }),
+          ]),
+          el('p', { class: 'tk-goi-y', text: 'Khi bật, tên bạn hiện là "Thành viên ẩn danh"; số giờ vẫn được tính.' }),
+        ]),
+        nutLuu,
+      ]);
+
+      form.addEventListener('submit', async (suKien) => {
+        suKien.preventDefault();
+        khungThongBao.hidden = true;
+
+        if (oHoTen.value.trim() === '') {
+          hienThongBao(khungThongBao, 'loi', 'Vui lòng nhập họ tên.');
+          oHoTen.focus();
+          return;
+        }
+
+        nutLuu.disabled = true;
+        nutLuu.textContent = 'Đang lưu...';
+        try {
+          const daLuu = await saveUser({
+            id: nguoi.id,
+            name: oHoTen.value,
+            type: oLoai.value === '' ? null : oLoai.value,
+            org: oDonVi.value,
+            hideOnBoard: oAnTen.checked,
+          });
+          Object.assign(nguoi, daLuu);
+          oHoTen.value = nguoi.name;
+          oDonVi.value = nguoi.org || '';
+          hienThongBao(khungThongBao, 'ok', 'Đã lưu hồ sơ.');
+        } catch (loi) {
+          hienThongBao(khungThongBao, 'loi', loi && loi.message ? loi.message : 'Không lưu được hồ sơ. Vui lòng thử lại.');
+        } finally {
+          nutLuu.disabled = false;
+          nutLuu.textContent = 'Lưu thay đổi';
+        }
+      });
+
+      const theHoSo = el('section', { class: 'tk-the tk-ho-so' }, [
+        el('h2', { text: 'Hồ sơ' }),
+        el('p', { class: 'tk-phu', text: 'Liên hệ: ' + (nguoi.contact || '') + ' · Mã khách: ' + (nguoi.code || '') }),
+        khungThongBao,
+        form,
+      ]);
+
+      // Vùng xóa tài khoản
+      const khungLoiXoa = el('p', { class: 'tk-thong-bao', hidden: true });
+      const nutXoa = el('button', { class: 'tk-btn tk-btn--nguy', type: 'button', text: 'Xóa tài khoản' });
+      nutXoa.addEventListener('click', async () => {
+        khungLoiXoa.hidden = true;
+        const dongY = window.confirm('Bạn chắc chắn muốn xóa tài khoản "' + nguoi.name + '"? Thao tác này không hoàn tác được.');
+        if (!dongY) return;
+        nutXoa.disabled = true;
+        nutXoa.textContent = 'Đang xóa...';
+        try {
+          await deleteUser(nguoi.id);
+          window.location.href = './index.html';
+        } catch (loi) {
+          hienThongBao(khungLoiXoa, 'loi', loi && loi.message ? loi.message : 'Không xóa được tài khoản. Vui lòng thử lại.');
+          nutXoa.disabled = false;
+          nutXoa.textContent = 'Xóa tài khoản';
+        }
+      });
+
+      const theXoa = el('section', { class: 'tk-the tk-vung-nguy tk-ho-so' }, [
+        el('h2', { text: 'Xóa tài khoản' }),
+        el('p', { class: 'tk-phu', text: 'Tài khoản sẽ bị xóa khỏi dữ liệu demo trên trình duyệt này.' }),
+        khungLoiXoa,
+        nutXoa,
+      ]);
+
+      return el('div', {}, [theHoSo, theXoa]);
+    }
+  </script>
+</body>
+</html>
