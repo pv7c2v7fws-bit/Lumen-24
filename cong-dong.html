@@ -1,0 +1,160 @@
+<!doctype html>
+<!-- cong-dong.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cộng đồng – Lumen 24</title>
+  <meta name="description" content="Chương trình tích điểm giờ ngồi, bảng vinh danh và ưu đãi dành cho câu lạc bộ tại Lumen 24.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .pg-main { padding-bottom: 48px; }
+    .pg-head { padding: 40px 0 16px; }
+    .pg-head h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .pg-head p { margin: 0; max-width: 62ch; line-height: 1.6; }
+    .pg-sec { padding: 20px 0; }
+    .pg-sec > h2 { margin: 0 0 14px; font-size: clamp(1.25rem, 3.5vw, 1.6rem); }
+    .pg-small { font-size: .85rem; opacity: .75; }
+    .pg-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+    .pg-card {
+      background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 10px rgba(31, 42, 68, .06);
+    }
+    .pg-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+    .pg-card p { margin: 0; line-height: 1.6; }
+    .pg-list { margin: 0; padding-left: 1.2em; line-height: 1.65; }
+    .pg-list li + li { margin-top: 8px; }
+    .cd-moc { text-align: center; }
+    .cd-moc__so {
+      display: block; font-size: clamp(2rem, 8vw, 2.75rem); font-weight: 800; line-height: 1.1;
+      color: var(--mau-chu, #1f2a44);
+    }
+    .cd-moc__so em {
+      font-style: normal; background: var(--mau-nhan, #f2b630); border-radius: 10px; padding: 0 10px;
+    }
+    .cd-bang { list-style: none; margin: 0; padding: 0; }
+    .cd-bang li {
+      display: flex; align-items: center; gap: 12px; padding: 10px 0;
+      border-top: 1px dashed rgba(31, 42, 68, .2);
+    }
+    .cd-bang li:first-child { border-top: 0; }
+    .cd-bang__hang {
+      flex: 0 0 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(31, 42, 68, .08); font-weight: 700;
+    }
+    .cd-bang__ten { flex: 1 1 auto; opacity: .55; }
+    .cd-bang__gio { flex: 0 0 auto; opacity: .55; }
+    .cd-ghi-chu {
+      margin: 14px 0 0; padding: 10px 12px; border-radius: 12px;
+      background: rgba(242, 182, 48, .18); font-size: .92rem; line-height: 1.5;
+    }
+    @media (min-width: 768px) {
+      .pg-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="pg-main">
+    <div class="container">
+      <header class="pg-head">
+        <h1>Cộng đồng Lumen 24</h1>
+        <p>Càng ngồi học nhiều, càng được thưởng. Chương trình tích điểm và bảng vinh danh giúp cả quán cùng chăm chỉ hơn.</p>
+      </header>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-tich-diem">
+        <h2 id="tieu-de-tich-diem">Chương trình tích điểm</h2>
+        <div class="pg-grid pg-grid--2">
+          <article class="pg-card cd-moc">
+            <span class="cd-moc__so"><em>100</em> giờ</span>
+            <p>Mỗi lần đạt thêm 100 giờ tích lũy (100, 200, 300…) bạn nhận 1 voucher Combo Trọn Ngày. Giờ tích lũy không bị trừ sau khi nhận voucher.</p>
+          </article>
+          <article class="pg-card">
+            <h3>Cách tính giờ</h3>
+            <ul class="pg-list">
+              <li>Giờ chỉ được tính khi bạn check-in bằng QR và có gói hợp lệ.</li>
+              <li>Combo Trọn Ngày cộng cố định 10 giờ.</li>
+              <li>Các gói khác cộng theo giờ ngồi thực tế, tối đa bằng thời lượng gói cộng với giờ vượt đã trả.</li>
+              <li>Phiên bị hủy hoặc thanh toán thất bại không được tính.</li>
+            </ul>
+          </article>
+          <article class="pg-card">
+            <h3>Voucher Combo Trọn Ngày</h3>
+            <ul class="pg-list">
+              <li>Voucher nằm trong tài khoản của bạn, có mã riêng.</li>
+              <li>Dùng khi check-in, giá 0đ.</li>
+              <li>Thời hạn dùng: <strong>30 ngày</strong> kể từ ngày nhận.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-vinh-danh">
+        <h2 id="tieu-de-vinh-danh">Bảng vinh danh</h2>
+        <p style="margin:0 0 14px;line-height:1.6;">Top 3 theo tháng và top 3 theo năm, tính tự động theo giờ tích lũy. Nếu bằng giờ, ai đạt mốc đó trước sẽ xếp trên. Bạn có thể chọn ẩn tên trong hồ sơ: tên hiện là “Thành viên ẩn danh” nhưng giờ của bạn vẫn được tính.</p>
+        <div class="pg-grid pg-grid--2">
+          <article class="pg-card">
+            <h3>Top 3 tháng này</h3>
+            <ol class="cd-bang" aria-label="Khung giữ chỗ top 3 tháng">
+              <li><span class="cd-bang__hang">1</span><span class="cd-bang__ten">—</span><span class="cd-bang__gio">– giờ</span></li>
+              <li><span class="cd-bang__hang">2</span><span class="cd-bang__ten">—</span><span class="cd-bang__gio">– giờ</span></li>
+              <li><span class="cd-bang__hang">3</span><span class="cd-bang__ten">—</span><span class="cd-bang__gio">– giờ</span></li>
+            </ol>
+          </article>
+          <article class="pg-card">
+            <h3>Top 3 năm</h3>
+            <ol class="cd-bang" aria-label="Khung giữ chỗ top 3 năm">
+              <li><span class="cd-bang__hang">1</span><span class="cd-bang__ten">—</span><span class="cd-bang__gio">– giờ</span></li>
+              <li><span class="cd-bang__hang">2</span><span class="cd-bang__ten">—</span><span class="cd-bang__gio">– giờ</span></li>
+              <li><span class="cd-bang__hang">3</span><span class="cd-bang__ten">—</span><span class="cd-bang__gio">– giờ</span></li>
+            </ol>
+          </article>
+        </div>
+        <p class="cd-ghi-chu" role="note">Dữ liệu thật sẽ có khi hoàn thiện tích điểm.</p>
+      </section>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-clb">
+        <h2 id="tieu-de-clb">Ưu đãi cho câu lạc bộ</h2>
+        <div class="pg-grid pg-grid--2">
+          <article class="pg-card">
+            <h3>Giảm <span data-cfg="clb"></span>% giá phòng họp</h3>
+            <ul class="pg-list">
+              <li>Áp dụng cho tài khoản thuộc câu lạc bộ đã được quán duyệt.</li>
+              <li>Không cộng dồn với giảm giá giờ thấp điểm: hệ thống lấy mức giảm cao hơn.</li>
+            </ul>
+          </article>
+          <article class="pg-card">
+            <h3>Điều kiện</h3>
+            <ul class="pg-list">
+              <li>Đăng 1 bài trên fanpage của câu lạc bộ cho mỗi đợt ưu đãi, gắn tag quán.</li>
+              <li>Quán không yêu cầu đánh giá Google Maps để nhận ưu đãi.</li>
+              <li>Câu lạc bộ gửi yêu cầu khi đăng ký tài khoản và chờ quản lý duyệt.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { getConfig } from './js/api.js';
+
+    renderLayout();
+
+    try {
+      const cfg = getConfig();
+      const giaTri = { clb: cfg.QUY_TAC.giamClbPhanTram };
+      document.querySelectorAll('[data-cfg]').forEach((node) => {
+        const v = giaTri[node.dataset.cfg];
+        node.textContent = v === undefined ? '?' : String(v);
+      });
+    } catch (loi) {
+      console.error('Không đọc được cấu hình:', loi);
+      document.querySelectorAll('[data-cfg]').forEach((node) => { node.textContent = '?'; });
+    }
+  </script>
+</body>
+</html>
