@@ -1,0 +1,139 @@
+<!doctype html>
+<!-- lien-he.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Liên hệ – Lumen 24</title>
+  <meta name="description" content="Địa chỉ, giờ mở cửa từng tầng và thông tin liên hệ của Lumen 24 (thông tin giả định cho bài tập).">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .pg-main { padding-bottom: 48px; }
+    .pg-head { padding: 40px 0 16px; }
+    .pg-head h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .pg-head p { margin: 0; max-width: 62ch; line-height: 1.6; }
+    .pg-sec { padding: 20px 0; }
+    .pg-small { font-size: .85rem; opacity: .75; }
+    .pg-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+    .pg-card {
+      background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 10px rgba(31, 42, 68, .06);
+    }
+    .pg-card h2 { margin: 0 0 12px; font-size: 1.2rem; }
+    .pg-card p { margin: 0 0 8px; line-height: 1.6; }
+    .lh-ds { list-style: none; margin: 0; padding: 0; }
+    .lh-ds li { padding: 10px 0; border-top: 1px dashed rgba(31, 42, 68, .2); line-height: 1.5; }
+    .lh-ds li:first-child { border-top: 0; padding-top: 0; }
+    .lh-ds strong { display: block; }
+    .lh-mxh { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; margin: 12px 0 0; padding: 0; }
+    .lh-mxh a {
+      display: inline-block; padding: 8px 14px; border-radius: 999px; text-decoration: none;
+      border: 1px solid rgba(31, 42, 68, .3); color: inherit;
+    }
+    .lh-mxh a:hover { background: var(--mau-nhan, #f2b630); }
+    .lh-banDo {
+      min-height: 260px; border-radius: 16px; display: grid; place-items: center; text-align: center; padding: 20px;
+      background:
+        linear-gradient(135deg, rgba(242, 182, 48, .25), rgba(31, 42, 68, .12)),
+        repeating-linear-gradient(0deg, transparent 0 39px, rgba(31, 42, 68, .08) 39px 40px),
+        repeating-linear-gradient(90deg, transparent 0 39px, rgba(31, 42, 68, .08) 39px 40px);
+      border: 1px solid rgba(31, 42, 68, .15);
+    }
+    .lh-banDo p { margin: 0; line-height: 1.5; }
+    @media (min-width: 768px) {
+      .pg-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lh-banDo { min-height: 340px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="pg-main">
+    <div class="container">
+      <header class="pg-head">
+        <h1>Liên hệ</h1>
+        <p>Ghé Lumen 24 hoặc nhắn cho chúng tôi. Địa chỉ và thông tin liên hệ là giả định cho bài tập.</p>
+      </header>
+
+      <div class="pg-sec">
+        <div class="pg-grid pg-grid--2">
+          <section class="pg-card" aria-labelledby="lh-dia-chi">
+            <h2 id="lh-dia-chi">Địa chỉ và liên hệ</h2>
+            <ul class="lh-ds">
+              <li><strong>Địa chỉ</strong>Khu Trịnh Văn Bô, Hà Nội</li>
+              <li><strong>Hotline</strong>0900 000 000</li>
+              <li><strong>Email</strong>hello@lumen24.example</li>
+            </ul>
+            <ul class="lh-mxh" aria-label="Mạng xã hội">
+              <li><a href="#" data-gia>Facebook</a></li>
+              <li><a href="#" data-gia>Instagram</a></li>
+              <li><a href="#" data-gia>TikTok</a></li>
+            </ul>
+            <p class="pg-small" style="margin-top:10px;">Liên kết mạng xã hội là giả cho bài tập.</p>
+          </section>
+
+          <section class="pg-card" aria-labelledby="lh-gio">
+            <h2 id="lh-gio">Giờ mở cửa từng tầng</h2>
+            <ul class="lh-ds" id="lh-ds-gio" aria-live="polite">
+              <li>Đang tải…</li>
+            </ul>
+            <p class="pg-small" id="lh-ghi-chu-dem" style="margin-top:10px;"></p>
+          </section>
+        </div>
+
+        <div class="lh-banDo" role="img" aria-label="Khối giữ chỗ cho bản đồ">
+          <p><strong>Bản đồ minh họa</strong><br>Khu Trịnh Văn Bô, Hà Nội<br><span class="pg-small">Bản đồ thật sẽ được thêm sau.</span></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { getConfig } from './js/api.js';
+
+    renderLayout();
+
+    // Liên kết mạng xã hội giả: không chuyển trang.
+    document.querySelectorAll('a[data-gia]').forEach((a) => {
+      a.addEventListener('click', (e) => e.preventDefault());
+    });
+
+    /** Khung giờ dạng "19h – 23h". Khung qua nửa đêm (23h – 6h) vẫn đọc đúng. */
+    const dinhDangKhung = (khung) => `${khung.tu}h – ${khung.den}h`;
+
+    function taoMuc(tieuDe, noiDung) {
+      const li = document.createElement('li');
+      const dam = document.createElement('strong');
+      dam.textContent = tieuDe;
+      li.append(dam, document.createTextNode(noiDung));
+      return li;
+    }
+
+    try {
+      const { TANG, KHUNG_GIO } = getConfig();
+      const ds = document.getElementById('lh-ds-gio');
+      const cacMuc = [];
+
+      for (const tang of TANG) {
+        let noiDung;
+        if (tang.mo24h) {
+          noiDung = `Mở cửa 24/7. ${tang.soChoTuDo} chỗ ngồi tự do.`;
+        } else {
+          noiDung = `Chỗ ngồi tự do (${tang.soChoTuDo} chỗ) mở ${dinhDangKhung(KHUNG_GIO.caoDiem)} hằng ngày, có thể mở thêm ban ngày khi tầng 1 và 2 quá đông. Phòng họp mở khi có đặt phòng.`;
+        }
+        cacMuc.push(taoMuc(tang.ten, noiDung));
+      }
+      ds.replaceChildren(...cacMuc);
+
+      document.getElementById('lh-ghi-chu-dem').textContent =
+        `Từ ${dinhDangKhung(KHUNG_GIO.dem)} chỉ tầng 1 và tầng 2 hoạt động.`;
+    } catch (loi) {
+      console.error('Không đọc được cấu hình:', loi);
+      document.getElementById('lh-ds-gio').replaceChildren(taoMuc('Giờ mở cửa', 'Chưa tải được dữ liệu, vui lòng tải lại trang.'));
+    }
+  </script>
+</body>
+</html>
