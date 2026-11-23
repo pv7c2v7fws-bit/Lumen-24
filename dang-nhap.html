@@ -1,0 +1,271 @@
+<!-- dang-nhap.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng nhập – Lumen 24</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .tk-trang { padding: 32px 0 56px; }
+    .tk-khung {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--mau-nen-the, #ffffff);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(20, 30, 60, 0.10);
+      padding: 24px 20px;
+    }
+    .tk-khung h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .tk-khung h2 { margin: 0 0 12px; font-size: 1.1rem; }
+    .tk-phu { margin: 0 0 20px; color: #55607a; font-size: 0.95rem; }
+    .tk-truong { margin-bottom: 16px; }
+    .tk-truong label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .tk-truong input {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #b9c0d0;
+      border-radius: 10px;
+      background: #fff;
+      color: inherit;
+    }
+    .tk-truong input:focus-visible,
+    .tk-btn:focus-visible, .tk-lien-ket:focus-visible, .tk-demo-nut:focus-visible {
+      outline: 3px solid var(--mau-nhan, #f2b134);
+      outline-offset: 2px;
+    }
+    .tk-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 20px;
+      font: inherit;
+      font-weight: 600;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--mau-nhan, #f2b134);
+      color: #1b2a49;
+      width: 100%;
+    }
+    .tk-btn--vien {
+      background: transparent;
+      border: 2px solid var(--mau-nhan, #f2b134);
+    }
+    .tk-btn[disabled], .tk-demo-nut[disabled] { opacity: 0.6; cursor: not-allowed; }
+    .tk-thong-bao { margin: 0 0 16px; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+    .tk-thong-bao[hidden] { display: none; }
+    .tk-thong-bao--loi { background: #fdecea; color: #8a1c14; border: 1px solid #f3b7b1; }
+    .tk-thong-bao--ok { background: #e8f6ee; color: #14532d; border: 1px solid #a7d7b9; }
+    .tk-thong-bao--tin { background: #eef3fb; color: #1b2a49; border: 1px solid #c4d2ea; }
+    .tk-ghi-chu { margin: 16px 0 0; font-size: 0.85rem; color: #55607a; }
+    .tk-hang-lien-ket { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 16px 0 0; }
+    .tk-lien-ket { color: inherit; font-weight: 600; }
+    .tk-ngan-cach { border: 0; border-top: 1px solid #dde1ea; margin: 24px 0; }
+    .tk-demo-ds { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+    .tk-demo-nut {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      font: inherit;
+      text-align: left;
+      border: 1px solid #b9c0d0;
+      border-radius: 12px;
+      background: #fff;
+      color: inherit;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .tk-demo-nut:hover:not([disabled]) { border-color: var(--mau-nhan, #f2b134); }
+    .tk-demo-ten { font-weight: 600; }
+    .tk-demo-vai-tro { font-size: 0.85rem; color: #55607a; white-space: nowrap; }
+    .tk-demo-trong { margin: 12px 0 0; color: #55607a; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container tk-trang">
+      <div class="tk-khung">
+        <h1>Đăng nhập</h1>
+        <p class="tk-phu">Dùng email hoặc số điện thoại đã đăng ký.</p>
+
+        <p id="da-dang-nhap" class="tk-thong-bao tk-thong-bao--tin" hidden></p>
+        <p id="thong-bao" class="tk-thong-bao" hidden></p>
+
+        <form id="form-dang-nhap" novalidate>
+          <div class="tk-truong">
+            <label for="lien-he">Email hoặc số điện thoại</label>
+            <input id="lien-he" name="lien-he" type="text" autocomplete="username" inputmode="email" required>
+          </div>
+          <div class="tk-truong">
+            <label for="mat-khau">Mật khẩu</label>
+            <input id="mat-khau" name="mat-khau" type="password" autocomplete="current-password" required>
+          </div>
+          <button id="nut-gui" class="tk-btn" type="submit">Đăng nhập</button>
+        </form>
+
+        <div class="tk-hang-lien-ket">
+          <a class="tk-lien-ket" href="./quen-mat-khau.html">Quên mật khẩu?</a>
+          <a class="tk-lien-ket" href="./dang-ky.html">Đăng ký</a>
+        </div>
+
+        <hr class="tk-ngan-cach">
+
+        <h2>Đăng nhập nhanh (demo)</h2>
+        <button id="nut-dang-nhap-nhanh" class="tk-btn tk-btn--vien" type="button" aria-expanded="false" aria-controls="khung-demo">Đăng nhập nhanh</button>
+        <div id="khung-demo" hidden>
+          <p id="demo-trang-thai" class="tk-demo-trong" role="status"></p>
+          <ul id="demo-ds" class="tk-demo-ds"></ul>
+        </div>
+
+        <p class="tk-ghi-chu">Mật khẩu chỉ là chuỗi giả cho bài tập. Các tài khoản demo đăng nhập bằng một lần bấm.</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { login, getUsers, getCurrentUser } from './js/api.js';
+
+    renderLayout();
+
+    const NHAN_VAI_TRO = { guest: 'Khách', staff: 'Nhân viên', manager: 'Quản lý' };
+    const SO_TAI_KHOAN_DEMO = 7;
+
+    const form = document.getElementById('form-dang-nhap');
+    const nutGui = document.getElementById('nut-gui');
+    const khungThongBao = document.getElementById('thong-bao');
+    const khungDaDangNhap = document.getElementById('da-dang-nhap');
+    const nutNhanh = document.getElementById('nut-dang-nhap-nhanh');
+    const khungDemo = document.getElementById('khung-demo');
+    const dsDemo = document.getElementById('demo-ds');
+    const trangThaiDemo = document.getElementById('demo-trang-thai');
+
+    let daNapDemo = false;
+
+    function hienThongBao(loai, noiDung) {
+      khungThongBao.textContent = noiDung;
+      khungThongBao.className = 'tk-thong-bao tk-thong-bao--' + loai;
+      khungThongBao.setAttribute('role', loai === 'loi' ? 'alert' : 'status');
+      khungThongBao.hidden = false;
+    }
+
+    function anThongBao() {
+      khungThongBao.hidden = true;
+      khungThongBao.textContent = '';
+    }
+
+    // Nếu đã đăng nhập sẵn thì báo cho người dùng biết, không tự chuyển trang.
+    (function kiemTraDaDangNhap() {
+      const nguoi = getCurrentUser();
+      if (!nguoi) return;
+      khungDaDangNhap.textContent = '';
+      khungDaDangNhap.append('Bạn đang đăng nhập là ' + nguoi.name + '. ');
+      const lienKet = document.createElement('a');
+      lienKet.href = './tai-khoan.html';
+      lienKet.className = 'tk-lien-ket';
+      lienKet.textContent = 'Vào trang tài khoản';
+      khungDaDangNhap.append(lienKet);
+      khungDaDangNhap.hidden = false;
+    })();
+
+    function khoaTatCaNutDemo(khoa) {
+      for (const nut of dsDemo.querySelectorAll('button')) nut.disabled = khoa;
+    }
+
+    async function dangNhapThanhCong(lienHe, matKhau, nutDangBam) {
+      anThongBao();
+      nutGui.disabled = true;
+      khoaTatCaNutDemo(true);
+      if (nutDangBam === nutGui) nutGui.textContent = 'Đang đăng nhập...';
+      try {
+        await login(lienHe, matKhau);
+        hienThongBao('ok', 'Đăng nhập thành công. Đang chuyển sang trang tài khoản...');
+        window.location.href = './tai-khoan.html';
+      } catch (loi) {
+        hienThongBao('loi', loi && loi.message ? loi.message : 'Không đăng nhập được. Vui lòng thử lại.');
+        nutGui.disabled = false;
+        nutGui.textContent = 'Đăng nhập';
+        khoaTatCaNutDemo(false);
+      }
+    }
+
+    form.addEventListener('submit', (suKien) => {
+      suKien.preventDefault();
+      const lienHe = form.elements['lien-he'].value;
+      const matKhau = form.elements['mat-khau'].value;
+      if (lienHe.trim() === '') {
+        hienThongBao('loi', 'Vui lòng nhập email hoặc số điện thoại.');
+        form.elements['lien-he'].focus();
+        return;
+      }
+      if (matKhau === '') {
+        hienThongBao('loi', 'Vui lòng nhập mật khẩu.');
+        form.elements['mat-khau'].focus();
+        return;
+      }
+      dangNhapThanhCong(lienHe, matKhau, nutGui);
+    });
+
+    async function napDanhSachDemo() {
+      trangThaiDemo.textContent = 'Đang tải danh sách tài khoản demo...';
+      dsDemo.textContent = '';
+      try {
+        const danhSach = await getUsers();
+        const taiKhoanDemo = danhSach.slice(0, SO_TAI_KHOAN_DEMO);
+        if (taiKhoanDemo.length === 0) {
+          trangThaiDemo.textContent = 'Chưa có tài khoản nào. Hãy đăng ký tài khoản mới.';
+          return;
+        }
+        trangThaiDemo.textContent = '';
+        for (const nguoi of taiKhoanDemo) {
+          const nut = document.createElement('button');
+          nut.type = 'button';
+          nut.className = 'tk-demo-nut';
+
+          const ten = document.createElement('span');
+          ten.className = 'tk-demo-ten';
+          ten.textContent = nguoi.name;
+
+          const vaiTro = document.createElement('span');
+          vaiTro.className = 'tk-demo-vai-tro';
+          vaiTro.textContent = NHAN_VAI_TRO[nguoi.role] || nguoi.role;
+
+          nut.append(ten, vaiTro);
+          // Mật khẩu demo lấy từ dữ liệu, không hiển thị trên giao diện.
+          nut.addEventListener('click', () => dangNhapThanhCong(nguoi.contact, nguoi.passwordDemo, nut));
+
+          const muc = document.createElement('li');
+          muc.append(nut);
+          dsDemo.append(muc);
+        }
+        daNapDemo = true;
+      } catch (loi) {
+        trangThaiDemo.textContent = 'Không tải được danh sách tài khoản demo. Vui lòng thử lại.';
+        daNapDemo = false;
+      }
+    }
+
+    nutNhanh.addEventListener('click', () => {
+      const dangMo = nutNhanh.getAttribute('aria-expanded') === 'true';
+      if (dangMo) {
+        khungDemo.hidden = true;
+        nutNhanh.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      khungDemo.hidden = false;
+      nutNhanh.setAttribute('aria-expanded', 'true');
+      if (!daNapDemo) napDanhSachDemo();
+    });
+  </script>
+</body>
+</html>
