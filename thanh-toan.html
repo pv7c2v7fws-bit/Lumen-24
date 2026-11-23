@@ -1,0 +1,502 @@
+<!-- thanh-toan.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thanh toán – Lumen 24</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .tt-trang { padding: 32px 0 56px; }
+    .tt-trang h1 { margin: 8px 0 16px; font-size: 1.6rem; }
+    .tt-luoi { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .tt-the {
+      background: var(--mau-nen-the, #ffffff);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(20, 30, 60, 0.10);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .tt-luoi .tt-the { margin-bottom: 0; }
+    .tt-the h2 { margin: 0 0 12px; font-size: 1.15rem; }
+    .tt-the h1 { margin-top: 0; }
+    .tt-dl { margin: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .tt-dl dt { font-size: 0.85rem; color: #55607a; }
+    .tt-dl dd { margin: 2px 0 0; font-weight: 600; word-break: break-word; }
+    .tt-tong dd { font-size: 1.4rem; }
+    .tt-phu { color: #55607a; margin: 0 0 12px; font-size: 0.95rem; }
+    .tt-nho { color: #55607a; margin: 8px 0 0; font-size: 0.85rem; word-break: break-word; }
+    .tt-rong { color: #55607a; margin: 0; }
+    .tt-lien-ket {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: inherit;
+      font-weight: 600;
+    }
+    .tt-lien-ket:focus-visible, .tt-btn:focus-visible {
+      outline: 3px solid var(--mau-nhan, #f2b134);
+      outline-offset: 2px;
+    }
+    .tt-nhan {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .tt-nhan--cho-thanh-toan { background: #fff4d6; color: #7a5200; border-color: #f0d68a; }
+    .tt-nhan--da-thanh-toan { background: #e8f6ee; color: #14532d; border-color: #a7d7b9; }
+    .tt-nhan--that-bai { background: #fdecea; color: #8a1c14; border-color: #f3b7b1; }
+    .tt-nhan--het-han { background: #eceff4; color: #3d4760; border-color: #c9d0de; }
+    .tt-nhan--da-hoan { background: #eef3fb; color: #1b3f7a; border-color: #c4d2ea; }
+    .tt-nhan--mat-coc { background: #ffefe0; color: #8a3b00; border-color: #f2c8a0; }
+    .tt-dem {
+      margin: 0 0 12px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .tt-qr-khung {
+      display: flex;
+      justify-content: center;
+      margin: 0 0 12px;
+    }
+    .tt-qr {
+      width: 100%;
+      max-width: 220px;
+      height: auto;
+      border: 1px solid #b9c0d0;
+      border-radius: 12px;
+      background: #fff;
+    }
+    .tt-chuoi {
+      margin: 0 0 4px;
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+    .tt-chuoi strong { font-weight: 600; }
+    .tt-hanh-dong { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .tt-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 20px;
+      font: inherit;
+      font-weight: 600;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--mau-nhan, #f2b134);
+      color: #1b2a49;
+    }
+    .tt-btn--vien { background: transparent; border: 2px solid #b9c0d0; }
+    .tt-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    .tt-thong-bao { margin: 0 0 16px; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+    .tt-thong-bao[hidden] { display: none; }
+    .tt-thong-bao--loi { background: #fdecea; color: #8a1c14; border: 1px solid #f3b7b1; }
+    .tt-thong-bao--ok { background: #e8f6ee; color: #14532d; border: 1px solid #a7d7b9; }
+    .tt-thong-bao--tin { background: #eef3fb; color: #1b2a49; border: 1px solid #c4d2ea; }
+    .tt-thu-cong { margin: 16px 0 0; font-weight: 600; }
+    @media (min-width: 768px) {
+      .tt-luoi { grid-template-columns: 1fr 1fr; align-items: start; }
+      .tt-hanh-dong { flex-direction: row; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container tt-trang" id="goc-trang">
+      <p class="tt-rong" id="dang-tai" role="status">Đang tải đơn thanh toán...</p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { now } from './js/clock.js';
+    import {
+      getCurrentUser,
+      layThanhToan,
+      xacNhanThanhToan,
+      thatBaiThanhToan,
+      TEN_LOAI_GIAO_DICH,
+      TEN_TRANG_THAI_THANH_TOAN,
+      TRANG_THAI_THANH_TOAN,
+    } from './js/api.js';
+
+    renderLayout();
+
+    const TRANG_QUAY_LAI = './tai-khoan.html?tab=giao-dich';
+    const TT = TRANG_THAI_THANH_TOAN;
+
+    /** Tạo phần tử DOM an toàn: chuỗi luôn thành văn bản (không dùng innerHTML). */
+    function el(tag, attrs = {}, children = []) {
+      const node = document.createElement(tag);
+      for (const [khoa, giaTri] of Object.entries(attrs)) {
+        if (giaTri === null || giaTri === undefined || giaTri === false) continue;
+        if (khoa === 'class') node.className = giaTri;
+        else if (khoa === 'text') node.textContent = giaTri;
+        else node.setAttribute(khoa, giaTri === true ? '' : giaTri);
+      }
+      for (const con of [].concat(children)) {
+        if (con === null || con === undefined || con === false) continue;
+        node.append(con);
+      }
+      return node;
+    }
+
+    // ---------- Định dạng ----------
+
+    /** Tiền: 89.000đ */
+    function dinhDangTien(so) {
+      const n = Number.isFinite(so) ? so : 0;
+      return n.toLocaleString('vi-VN') + 'đ';
+    }
+
+    const DINH_DANG_GIO_VN = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    });
+
+    /** Chuỗi ISO -> dd/mm/yyyy HH:mm theo giờ Việt Nam. */
+    function dinhDangThoiDiem(iso) {
+      const ms = Date.parse(iso);
+      if (!Number.isFinite(ms)) return '—';
+      const p = {};
+      for (const phan of DINH_DANG_GIO_VN.formatToParts(new Date(ms))) p[phan.type] = phan.value;
+      return p.day + '/' + p.month + '/' + p.year + ' ' + p.hour + ':' + p.minute;
+    }
+
+    /** Mili giây còn lại -> mm:ss (hoặc h:mm:ss nếu từ 1 giờ trở lên). */
+    function dinhDangDemNguoc(ms) {
+      const tongGiay = Math.max(0, Math.ceil(ms / 1000));
+      const gio = Math.floor(tongGiay / 3600);
+      const phut = Math.floor((tongGiay % 3600) / 60);
+      const giay = tongGiay % 60;
+      const hai = (n) => String(n).padStart(2, '0');
+      return gio > 0 ? gio + ':' + hai(phut) + ':' + hai(giay) : hai(phut) + ':' + hai(giay);
+    }
+
+    // ---------- Mã QR giả (SVG, không cần thư viện) ----------
+
+    /** Băm chuỗi thành số nguyên 32 bit (FNV-1a). */
+    function bamChuoi(chuoi) {
+      let h = 2166136261;
+      for (let i = 0; i < chuoi.length; i++) {
+        h ^= chuoi.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    /** Bộ sinh số giả ngẫu nhiên có hạt giống cố định (mulberry32). */
+    function boSinhSo(hat) {
+      let a = hat >>> 0;
+      return function () {
+        a = (a + 0x6D2B79F5) >>> 0;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    /** Vẽ khối giống mã QR (25x25), cố định theo chuỗi truyền vào. Chỉ là hình minh họa. */
+    function taoSvgQr(chuoi) {
+      const N = 25;
+      const NS = 'http://www.w3.org/2000/svg';
+      const ngauNhien = boSinhSo(bamChuoi(chuoi));
+      const gocViTri = [[0, 0], [N - 7, 0], [0, N - 7]];
+      let d = '';
+      for (let y = 0; y < N; y++) {
+        for (let x = 0; x < N; x++) {
+          let bat;
+          const goc = gocViTri.find(([ox, oy]) => x >= ox && x < ox + 7 && y >= oy && y < oy + 7);
+          if (goc) {
+            const dx = x - goc[0];
+            const dy = y - goc[1];
+            bat = dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4);
+          } else if (gocViTri.some(([ox, oy]) => x >= ox - 1 && x <= ox + 7 && y >= oy - 1 && y <= oy + 7)) {
+            bat = false; // viền trắng quanh ba góc định vị
+          } else {
+            bat = ngauNhien() < 0.5;
+          }
+          if (bat) d += 'M' + x + ' ' + y + 'h1v1h-1z';
+        }
+      }
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'tt-qr');
+      svg.setAttribute('viewBox', '-2 -2 ' + (N + 4) + ' ' + (N + 4));
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', 'Mã QR giả để minh họa, không phải mã ngân hàng');
+      svg.setAttribute('shape-rendering', 'crispEdges');
+      const nen = document.createElementNS(NS, 'rect');
+      nen.setAttribute('x', '-2');
+      nen.setAttribute('y', '-2');
+      nen.setAttribute('width', String(N + 4));
+      nen.setAttribute('height', String(N + 4));
+      nen.setAttribute('fill', '#ffffff');
+      const duong = document.createElementNS(NS, 'path');
+      duong.setAttribute('d', d);
+      duong.setAttribute('fill', '#1b2a49');
+      svg.append(nen, duong);
+      return svg;
+    }
+
+    // ---------- Trạng thái trang ----------
+
+    const goc = document.getElementById('goc-trang');
+    const khungThongBao = el('p', { class: 'tt-thong-bao', hidden: true });
+    const vungDon = el('div');
+
+    let don = null;          // đơn đang xem (bản mới nhất đọc từ API)
+    let boHenGio = null;     // id của setInterval đồng hồ đếm ngược
+    let elDem = null;        // phần tử hiện đồng hồ đếm ngược
+    let nutDaChuyen = null;  // nút "đã chuyển khoản"
+    let nutThatBai = null;   // nút "thất bại"
+    let dangXuLy = false;    // đang chờ API trả lời sau khi bấm nút
+    let dangDongBo = false;  // đang đọc lại đơn khi đồng hồ về 0
+
+    function hienThongBao(loai, noiDung) {
+      khungThongBao.textContent = noiDung;
+      khungThongBao.className = 'tt-thong-bao tt-thong-bao--' + loai;
+      khungThongBao.setAttribute('role', loai === 'loi' ? 'alert' : 'status');
+      khungThongBao.hidden = false;
+    }
+
+    function anThongBao() {
+      khungThongBao.hidden = true;
+      khungThongBao.textContent = '';
+    }
+
+    function taoLienKetQuayLai() {
+      return el('a', { class: 'tt-lien-ket', href: TRANG_QUAY_LAI, text: '← Quay lại giao dịch' });
+    }
+
+    /** Thay toàn bộ nội dung trang bằng một thẻ báo lỗi kèm liên kết quay lại. */
+    function hienTrangLoi(tieuDe, noiDung) {
+      dungDemNguoc();
+      goc.textContent = '';
+      goc.append(el('div', { class: 'tt-the' }, [
+        el('h1', { text: tieuDe }),
+        el('p', { class: 'tt-phu', text: noiDung }),
+        taoLienKetQuayLai(),
+      ]));
+    }
+
+    /** Đơn có đang bị coi là hết hạn không (theo trạng thái hoặc theo đồng hồ mô phỏng). */
+    function laHetHan() {
+      if (don.trangThai === TT.HET_HAN) return true;
+      return don.trangThai === TT.CHO && now().getTime() >= Date.parse(don.hetHanLuc);
+    }
+
+    // ---------- Đồng hồ đếm ngược ----------
+
+    function dungDemNguoc() {
+      if (boHenGio !== null) {
+        clearInterval(boHenGio);
+        boHenGio = null;
+      }
+    }
+
+    async function dongBoKhiHetGio() {
+      if (dangDongBo) return;
+      dangDongBo = true;
+      try {
+        don = await layThanhToan(don.id); // API tự đổi đơn quá hạn thành het-han
+      } catch (loi) {
+        hienThongBao('loi', loi && loi.message ? loi.message : 'Không cập nhật được đơn. Vui lòng tải lại trang.');
+      } finally {
+        dangDongBo = false;
+        veDon();
+      }
+    }
+
+    function capNhatDemNguoc() {
+      if (!elDem || !don) return;
+      const con = Date.parse(don.hetHanLuc) - now().getTime();
+      if (con <= 0) {
+        dungDemNguoc();
+        dongBoKhiHetGio();
+        return;
+      }
+      elDem.textContent = 'Còn lại ' + dinhDangDemNguoc(con);
+    }
+
+    // ---------- Bấm nút mô phỏng ----------
+
+    async function xuLyNut(hanhDong, thongBaoThanhCong, loaiThongBao) {
+      if (dangXuLy) return;
+      dangXuLy = true;
+      anThongBao();
+      if (nutDaChuyen) nutDaChuyen.disabled = true;
+      if (nutThatBai) nutThatBai.disabled = true;
+      try {
+        await hanhDong(don.id);
+        hienThongBao(loaiThongBao, thongBaoThanhCong);
+      } catch (loi) {
+        hienThongBao('loi', loi && loi.message ? loi.message : 'Không xử lý được đơn. Vui lòng thử lại.');
+      }
+      try {
+        don = await layThanhToan(don.id);
+      } catch (loi) {
+        hienThongBao('loi', loi && loi.message ? loi.message : 'Không cập nhật được đơn. Vui lòng tải lại trang.');
+      }
+      dangXuLy = false;
+      veDon();
+    }
+
+    // ---------- Vẽ giao diện ----------
+
+    function taoMuc(nhan, giaTri, lop) {
+      return el('div', { class: lop || null }, [
+        el('dt', { text: nhan }),
+        el('dd', {}, giaTri),
+      ]);
+    }
+
+    function taoThongBaoKetQua() {
+      const noiDung = {
+        [TT.DA_THANH_TOAN]: 'Đơn đã được thanh toán.',
+        [TT.THAT_BAI]: 'Thanh toán thất bại. Vui lòng tạo đơn mới để thử lại.',
+        [TT.DA_HOAN]: 'Tiền cọc đã được hoàn.',
+        [TT.MAT_COC]: 'Tiền cọc không được hoàn (mất cọc).',
+      }[don.trangThai];
+      if (!noiDung) return null;
+      const loai = don.trangThai === TT.DA_THANH_TOAN || don.trangThai === TT.DA_HOAN ? 'ok'
+        : (don.trangThai === TT.THAT_BAI ? 'loi' : 'tin');
+      return el('p', { class: 'tt-thong-bao tt-thong-bao--' + loai, role: 'status', text: noiDung });
+    }
+
+    function veDon() {
+      dungDemNguoc();
+      elDem = null;
+      nutDaChuyen = null;
+      nutThatBai = null;
+      vungDon.textContent = '';
+
+      const hetHan = laHetHan();
+      const dangCho = don.trangThai === TT.CHO && !hetHan;
+      const maTrangThai = hetHan ? TT.HET_HAN : don.trangThai;
+
+      // --- Thẻ chi tiết đơn ---
+      const theThongTin = el('section', { class: 'tt-the' }, [
+        el('h2', { text: 'Chi tiết đơn' }),
+        el('dl', { class: 'tt-dl' }, [
+          taoMuc('Mã đơn', don.id),
+          taoMuc('Loại giao dịch', TEN_LOAI_GIAO_DICH[don.loai] || don.loai),
+          taoMuc('Số tiền', dinhDangTien(don.tien)),
+          taoMuc('Phí cổng thanh toán (quán chịu)', dinhDangTien(don.phi)),
+          taoMuc('Tổng khách chuyển', dinhDangTien(don.tien), 'tt-tong'),
+          taoMuc('Trạng thái', el('span', {
+            class: 'tt-nhan tt-nhan--' + maTrangThai,
+            text: TEN_TRANG_THAI_THANH_TOAN[maTrangThai] || maTrangThai,
+          })),
+          taoMuc('Tạo lúc', dinhDangThoiDiem(don.taoLuc)),
+          taoMuc('Hạn thanh toán', dinhDangThoiDiem(don.hetHanLuc)),
+          don.thanhToanLuc ? taoMuc('Thanh toán lúc', dinhDangThoiDiem(don.thanhToanLuc)) : null,
+        ]),
+      ]);
+
+      // --- Thẻ thanh toán ---
+      const theThanhToan = el('section', { class: 'tt-the' }, [el('h2', { text: 'Thanh toán' })]);
+
+      if (hetHan) {
+        theThanhToan.append(el('p', {
+          class: 'tt-thong-bao tt-thong-bao--loi',
+          role: 'alert',
+          text: 'Đơn đã hết hạn, vui lòng tạo lại',
+        }));
+      } else {
+        if (dangCho) {
+          const chuoiQr = 'LUMEN24|' + don.id + '|' + don.tien;
+          elDem = el('p', { class: 'tt-dem', role: 'timer' });
+          theThanhToan.append(
+            elDem,
+            el('div', { class: 'tt-qr-khung' }, taoSvgQr(chuoiQr)),
+            el('p', { class: 'tt-chuoi' }, [el('strong', { text: 'Nội dung chuyển khoản: ' }), don.id]),
+            el('p', { class: 'tt-chuoi' }, [el('strong', { text: 'Chuỗi mã QR: ' }), chuoiQr]),
+            el('p', { class: 'tt-nho', text: 'Đây là mã giả cho bài tập, không phải mã ngân hàng. Không chuyển tiền thật.' })
+          );
+        } else {
+          const ketQua = taoThongBaoKetQua();
+          if (ketQua) theThanhToan.append(ketQua);
+        }
+
+        if (don.thuCong) {
+          theThanhToan.append(el('p', { class: 'tt-thu-cong', text: 'Thanh toán thủ công tại quầy' }));
+        } else {
+          nutDaChuyen = el('button', { class: 'tt-btn', type: 'button', text: 'Mô phỏng: đã chuyển khoản' });
+          nutThatBai = el('button', { class: 'tt-btn tt-btn--vien', type: 'button', text: 'Mô phỏng: thất bại' });
+          nutDaChuyen.addEventListener('click', () => xuLyNut(
+            xacNhanThanhToan, 'Đã ghi nhận thanh toán thành công.', 'ok'
+          ));
+          nutThatBai.addEventListener('click', () => xuLyNut(
+            thatBaiThanhToan, 'Đã ghi nhận thanh toán thất bại.', 'tin'
+          ));
+          theThanhToan.append(el('div', { class: 'tt-hanh-dong' }, [nutDaChuyen, nutThatBai]));
+          if (!dangCho) {
+            theThanhToan.append(el('p', {
+              class: 'tt-nho',
+              text: 'Đơn không còn ở trạng thái chờ thanh toán. Hai nút mô phỏng vẫn hiện để kiểm tra thông báo lỗi của hệ thống.',
+            }));
+          }
+        }
+      }
+
+      vungDon.append(el('div', { class: 'tt-luoi' }, [theThongTin, theThanhToan]));
+
+      if (dangCho) {
+        capNhatDemNguoc();
+        boHenGio = setInterval(capNhatDemNguoc, 1000);
+      }
+    }
+
+    // ---------- Khởi tạo: kiểm tra đăng nhập, quyền xem, tải đơn ----------
+
+    const nguoi = getCurrentUser();
+
+    if (!nguoi) {
+      window.location.replace('./dang-nhap.html');
+    } else {
+      khoiTao();
+    }
+
+    async function khoiTao() {
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (!id) {
+        hienTrangLoi('Thiếu mã đơn', 'Đường dẫn chưa có mã đơn. Hãy mở đơn từ danh sách giao dịch của bạn.');
+        return;
+      }
+      try {
+        don = await layThanhToan(id);
+      } catch (loi) {
+        hienTrangLoi('Không mở được đơn', loi && loi.message ? loi.message : 'Không tải được đơn. Vui lòng thử lại.');
+        return;
+      }
+      if (don.userId !== nguoi.id && nguoi.role === 'guest') {
+        hienTrangLoi('Bạn không có quyền xem đơn này', 'Đơn này thuộc về tài khoản khác. Hãy đăng nhập đúng tài khoản đã tạo đơn.');
+        return;
+      }
+
+      goc.textContent = '';
+      goc.append(
+        taoLienKetQuayLai(),
+        el('h1', { text: 'Thanh toán' }),
+        khungThongBao,
+        vungDon
+      );
+      veDon();
+    }
+  </script>
+</body>
+</html>
