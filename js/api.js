@@ -1,19 +1,33 @@
 // js/api.js
 // -----------------------------------------------------------------------------
-// Lớp truy cập dữ liệu của Lumen 24 (Bước 1c).
-// Mọi giao diện chỉ gọi dữ liệu qua file này, không gọi js/store.js trực tiếp.
+// Lớp truy cập dữ liệu của Lumen 24 (Bước 1c). Mọi trang đi qua file này để đọc và
+// ghi dữ liệu; sau này có thể thay bằng cơ sở dữ liệu thật mà không sửa giao diện.
 //
-// LƯU Ý QUAN TRỌNG: đây là hệ thống MÔ PHỎNG cho bài tập. Mật khẩu chỉ là chuỗi giả
-// cho demo, được lưu và so sánh nguyên văn, KHÔNG mã hóa. Không dùng mật khẩu thật.
-// Phân quyền và đăng nhập ở đây không phải bảo mật thật.
+// Hiện cung cấp: cấu hình (getConfig), tài khoản (getUsers, getUserById, saveUser)
+// và trạng thái đăng nhập (login, logout, getCurrentUser).
 //
-// Mọi hàm xuất ra đều là async và chờ một khoảng ngẫu nhiên 200-500 ms (hàm trễ())
-// để giả lập độ trễ của máy chủ. Sau này có thể thay phần bên trong bằng cơ sở dữ
-// liệu thật mà không phải sửa giao diện.
+// Độ trễ giả lập:
+//   - getConfig() và getCurrentUser() là hàm ĐỒNG BỘ, không trễ, vì chỉ đọc dữ liệu
+//     có sẵn và được header gọi liên tục.
+//   - Các hàm còn lại là async và trễ ngẫu nhiên 200-500 ms qua hàm tre() dùng chung.
+//     Mỗi hàm chờ xong độ trễ rồi mới đọc và ghi dữ liệu trong một khối đồng bộ,
+//     nên không có hai thao tác chen vào giữa chừng.
 //
-// Lỗi nghiệp vụ được ném ra là Error có thông báo tiếng Việt, kèm hai thuộc tính:
-//   loi.ma     mã lỗi ngắn, ví dụ 'TRUNG_LIEN_HE', 'SAI_MAT_KHAU'
-//   loi.truong tên trường gây lỗi ('contact', 'phone', 'name', ...) hoặc null
+// LƯU Ý VỀ MẬT KHẨU: passwordDemo chỉ là chuỗi giả cho demo, KHÔNG mã hóa, lưu nguyên
+// văn trong store. getUsers() và getCurrentUser() trả cả passwordDemo (dữ liệu demo).
+// Tuyệt đối không dùng mật khẩu thật.
+//
+// LƯU Ý VỀ TÍNH NGẪU NHIÊN VÀ GIỜ GIẤC:
+//   - File này không gọi new Date(); giờ chỉ lấy qua now() của js/clock.js (mục 1.3).
+//   - Math.random được dùng ở hai chỗ: (1) 4 ký tự ngẫu nhiên cuối id tài khoản mới
+//     (đây là ngoại lệ duy nhất cho dữ liệu LƯU TRỮ), (2) độ trễ giả lập trong tre(),
+//     chỉ ảnh hưởng thời gian chờ chứ không ảnh hưởng dữ liệu.
+//
+// Mã khách (LM-000123) hiện lấy "số lớn nhất trong danh sách + 1". Ở Bước 3 sẽ đổi sang
+// bộ đếm lưu trong store, để mã không bị dùng lại khi xóa tài khoản.
+//
+// Khóa lumen-current-user chỉ lưu id của người đang đăng nhập (không lưu cả tài khoản),
+// nên getCurrentUser() luôn trả dữ liệu mới nhất của tài khoản đó.
 // -----------------------------------------------------------------------------
 
 import * as store from './store.js';
@@ -23,347 +37,302 @@ import { now } from './clock.js';
 
 // ---------- Hằng số ----------
 
-/**
- * Khóa lưu người đang đăng nhập. store.js tự thêm tiền tố nên khóa thật trong
- * localStorage là "lumen24:lumen-current-user". Giá trị lưu là id của tài khoản.
- */
-const KHOA_NGUOI_DANG_NHAP = 'lumen-current-user';
+/** Khóa trong store lưu id của người đang đăng nhập. Header có thể store.subscribe khóa này để cập nhật khi tab khác đăng nhập hoặc đăng xuất. */
+export const KHOA_DANG_NHAP = 'lumen-current-user';
 
-/** Khoảng trễ giả lập (mili giây). */
-const DO_TRE_TOI_THIEU_MS = 200;
-const DO_TRE_TOI_DA_MS = 500;
+const TRE_TOI_THIEU_MS = 200;
+const TRE_TOI_DA_MS = 500;
 
-/** Giá trị hợp lệ của vai trò và loại khách (mục 7 của đặc tả). */
 const VAI_TRO_HOP_LE = ['guest', 'staff', 'manager'];
 const LOAI_KHACH_HOP_LE = ['student', 'worker'];
 
-/** Email cơ bản: có phần trước @, phần sau @ và dấu chấm. */
-const MAU_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** Số điện thoại Việt Nam theo đặc tả (M3): 10 chữ số, bắt đầu bằng 0. */
-const MAU_SO_DIEN_THOAI = /^0\d{9}$/;
+/** Các trường không bao giờ đổi được khi cập nhật tài khoản. */
+const TRUONG_BAT_BIEN = ['id', 'code', 'createdAt'];
 
-// ---------- Hàm nội bộ ----------
+const KY_TU_NGAU_NHIEN = '0123456789abcdefghijklmnopqrstuvwxyz';
 
-/** Chờ ngẫu nhiên từ 200 đến 500 ms (đã gồm cả hai đầu). Dùng chung cho mọi hàm xuất ra. */
-function trễ() {
-  const khoang = DO_TRE_TOI_DA_MS - DO_TRE_TOI_THIEU_MS + 1;
-  const ms = DO_TRE_TOI_THIEU_MS + Math.floor(Math.random() * khoang);
+/** Email: có đúng một dấu @, hai bên có ký tự và không có khoảng trắng. */
+const MAU_EMAIL = /^[^\s@]+@[^\s@]+$/;
+/** Số điện thoại Việt Nam: 10 chữ số, bắt đầu bằng 0. */
+const MAU_SDT = /^0\d{9}$/;
+
+const LOI_SAI_TAI_KHOAN = 'Email hoặc số điện thoại không đúng. Vui lòng kiểm tra lại.';
+const LOI_SAI_MAT_KHAU = 'Mật khẩu không đúng. Vui lòng thử lại.';
+
+// ---------- Hàm hỗ trợ nội bộ ----------
+
+/** Chờ ngẫu nhiên 200-500 ms để giả lập độ trễ của máy chủ. */
+function tre() {
+  const ms = TRE_TOI_THIEU_MS + Math.floor(Math.random() * (TRE_TOI_DA_MS - TRE_TOI_THIEU_MS + 1));
   return new Promise((giaiQuyet) => setTimeout(giaiQuyet, ms));
 }
 
-/** Tạo lỗi nghiệp vụ có thông báo tiếng Việt, mã lỗi và tên trường. */
-function taoLoi(thongBao, ma, truong = null) {
-  const loi = new Error(thongBao);
-  loi.name = 'LoiApi';
-  loi.ma = ma;
-  loi.truong = truong;
-  return loi;
+/** Sao chép sâu một giá trị JSON (đối tượng, mảng, số, chuỗi, null). Bản sao không bị đóng băng. */
+function saoSau(giaTri) {
+  if (Array.isArray(giaTri)) return giaTri.map(saoSau);
+  if (giaTri && typeof giaTri === 'object') {
+    const banSao = {};
+    for (const [khoa, con] of Object.entries(giaTri)) banSao[khoa] = saoSau(con);
+    return banSao;
+  }
+  return giaTri;
 }
 
-/** Chuyển giá trị bất kỳ thành chuỗi đã cắt khoảng trắng hai đầu; null hoặc undefined thành chuỗi rỗng. */
-function chuanHoaChuoi(giaTri) {
-  if (giaTri === null || giaTri === undefined) return '';
-  return String(giaTri).trim();
+/** Chuỗi ngẫu nhiên gồm soKyTu ký tự a-z0-9 (dùng Math.random, xem ghi chú đầu file). */
+function chuoiNgauNhien(soKyTu) {
+  let ketQua = '';
+  for (let i = 0; i < soKyTu; i++) {
+    ketQua += KY_TU_NGAU_NHIEN.charAt(Math.floor(Math.random() * KY_TU_NGAU_NHIEN.length));
+  }
+  return ketQua;
 }
 
-/** Bỏ mọi khoảng trắng trong chuỗi (dùng cho số điện thoại gõ kiểu "0912 345 678"). */
-function boKhoangTrang(chuoi) {
+/**
+ * Đọc danh sách tài khoản. Nếu khóa users chưa có hoặc không phải mảng thì nạp 7 tài khoản
+ * từ taoNguoiDungSeed() vào store. Mảng rỗng được giữ nguyên, không nạp lại. Không nạp clubs.
+ * store.get luôn trả bản mới được giải mã từ JSON nên có thể sửa thoải mái rồi ghi lại.
+ */
+function docNguoiDung() {
+  let danhSach = store.get(KHOA_NGUOI_DUNG);
+  if (!Array.isArray(danhSach)) {
+    danhSach = taoNguoiDungSeed();
+    store.set(KHOA_NGUOI_DUNG, danhSach);
+  }
+  return danhSach;
+}
+
+/** Email: bỏ khoảng trắng hai đầu và đưa về chữ thường. Số điện thoại: bỏ mọi khoảng trắng. */
+function chuanHoaLienHe(giaTri) {
+  const chuoi = String(giaTri === undefined || giaTri === null ? '' : giaTri).trim();
+  if (chuoi.includes('@')) return chuoi.toLowerCase();
   return chuoi.replace(/\s+/g, '');
 }
 
-/**
- * Chuẩn hóa email hoặc số điện thoại để so sánh:
- * có dấu @ thì coi là email (viết thường), ngược lại coi là số điện thoại (bỏ khoảng trắng).
- */
-function chuanHoaDinhDanh(giaTri) {
-  const chuoi = chuanHoaChuoi(giaTri);
-  if (chuoi.includes('@')) return chuoi.toLowerCase();
-  return boKhoangTrang(chuoi);
+/** Số điện thoại: bỏ mọi khoảng trắng. */
+function chuanHoaSdt(giaTri) {
+  return String(giaTri === undefined || giaTri === null ? '' : giaTri).replace(/\s+/g, '');
 }
 
-/** Các định danh dùng để đăng nhập và kiểm tra trùng của một tài khoản: contact và phone. */
-function dinhDanhCua(nguoiDung) {
-  return [nguoiDung.contact, nguoiDung.phone]
-    .map(chuanHoaDinhDanh)
-    .filter((dinhDanh) => dinhDanh !== '');
+/** Id tài khoản mới: u- + thời gian mô phỏng (hệ 36) + 4 ký tự ngẫu nhiên; lặp lại nếu trùng id đã có. */
+function taoIdMoi(danhSach) {
+  const phanThoiGian = now().getTime().toString(36);
+  let id;
+  do {
+    id = 'u-' + phanThoiGian + chuoiNgauNhien(4);
+  } while (danhSach.some((nguoi) => nguoi.id === id));
+  return id;
 }
 
-/** Bản sao sâu của dữ liệu thuần (dùng cho cấu hình vốn bị đóng băng). */
-function banSaoSau(giaTri) {
-  if (typeof structuredClone === 'function') return structuredClone(giaTri);
-  return JSON.parse(JSON.stringify(giaTri));
-}
-
-/**
- * Đọc danh sách tài khoản từ store.
- * Nếu store chưa có danh sách (khóa chưa tồn tại hoặc dữ liệu hỏng, không phải mảng)
- * thì tự nạp 7 tài khoản demo từ seed rồi ghi vào store.
- * Một mảng rỗng được coi là "đã có danh sách" và được giữ nguyên.
- */
-function docNguoiDung() {
-  const danhSach = store.get(KHOA_NGUOI_DUNG, null);
-  if (Array.isArray(danhSach)) return danhSach;
-
-  const danhSachSeed = taoNguoiDungSeed();
-  store.set(KHOA_NGUOI_DUNG, danhSachSeed);
-  return danhSachSeed;
-}
-
-/** Mã khách mới dạng LM-000123: lấy số lớn nhất hiện có cộng 1 (G8 trong PROGRESS.md). */
+/** Mã khách mới: LM- + (số lớn nhất trong các mã hiện có + 1), đủ 6 chữ số. */
 function taoMaKhachMoi(danhSach) {
   let lonNhat = 0;
-  for (const nguoiDung of danhSach) {
-    const khop = /^LM-(\d+)$/.exec(String(nguoiDung.code || ''));
+  for (const nguoi of danhSach) {
+    const khop = /^LM-(\d+)$/.exec(String(nguoi.code || ''));
     if (khop) lonNhat = Math.max(lonNhat, Number(khop[1]));
   }
   return 'LM-' + String(lonNhat + 1).padStart(6, '0');
 }
 
-/** id mới dạng "u-" + thời gian mô phỏng (hệ 36) + 4 ký tự ngẫu nhiên; lặp lại nếu lỡ trùng. */
-function taoIdMoi(danhSach) {
-  let id;
-  do {
-    id = 'u-' + now().getTime().toString(36) + Math.random().toString(36).slice(2, 6);
-  } while (danhSach.some((nguoiDung) => nguoiDung.id === id));
-  return id;
+/**
+ * Kiểm tra, chuẩn hóa và hoàn thiện các trường của một tài khoản (sửa trực tiếp đối tượng ban).
+ * Thứ tự kiểm tra: liên hệ -> số điện thoại -> trùng -> họ tên -> mật khẩu -> vai trò -> loại khách.
+ * Báo lỗi bằng Error tiếng Việt.
+ */
+function kiemTraTaiKhoan(ban, danhSach) {
+  // --- contact: email (có @) hoặc số điện thoại 10 số bắt đầu bằng 0 ---
+  ban.contact = chuanHoaLienHe(ban.contact);
+  if (ban.contact === '') {
+    throw new Error('Vui lòng nhập email hoặc số điện thoại.');
+  }
+  const contactLaEmail = ban.contact.includes('@');
+  if (contactLaEmail) {
+    if (!MAU_EMAIL.test(ban.contact)) {
+      throw new Error('Email không hợp lệ. Vui lòng kiểm tra lại, ví dụ ten@example.com.');
+    }
+  } else if (!MAU_SDT.test(ban.contact)) {
+    throw new Error('Liên hệ phải là email hoặc số điện thoại gồm 10 chữ số, bắt đầu bằng 0.');
+  }
+
+  // --- phone: nếu contact là số điện thoại mà phone để trống thì phone lấy bằng contact ---
+  ban.phone = chuanHoaSdt(ban.phone);
+  if (ban.phone === '' && !contactLaEmail) ban.phone = ban.contact;
+  if (ban.phone !== '' && !MAU_SDT.test(ban.phone)) {
+    throw new Error('Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0.');
+  }
+  if (ban.phone === '') ban.phone = null;
+
+  // --- Trùng (G7): so sánh contact và phone mới với contact và phone của các tài khoản KHÁC ---
+  const daDung = new Set();
+  for (const nguoi of danhSach) {
+    if (nguoi.id === ban.id) continue;
+    const lienHe = chuanHoaLienHe(nguoi.contact);
+    const sdt = chuanHoaSdt(nguoi.phone);
+    if (lienHe !== '') daDung.add(lienHe);
+    if (sdt !== '') daDung.add(sdt);
+  }
+  if (daDung.has(ban.contact)) {
+    throw new Error(contactLaEmail
+      ? 'Email đã được dùng bởi tài khoản khác.'
+      : 'Số điện thoại đã được dùng bởi tài khoản khác.');
+  }
+  if (ban.phone !== null && ban.phone !== ban.contact && daDung.has(ban.phone)) {
+    throw new Error('Số điện thoại đã được dùng bởi tài khoản khác.');
+  }
+
+  // --- Họ tên ---
+  ban.name = String(ban.name === undefined || ban.name === null ? '' : ban.name).trim();
+  if (ban.name === '') throw new Error('Vui lòng nhập họ tên.');
+
+  // --- Mật khẩu giả (không mã hóa, không cắt khoảng trắng) ---
+  if (typeof ban.passwordDemo !== 'string' || ban.passwordDemo === '') {
+    throw new Error('Vui lòng nhập mật khẩu.');
+  }
+
+  // --- Vai trò và loại khách ---
+  if (!VAI_TRO_HOP_LE.includes(ban.role)) {
+    throw new Error('Vai trò không hợp lệ. Chỉ nhận: ' + VAI_TRO_HOP_LE.join(', ') + '.');
+  }
+  if (ban.type === undefined) ban.type = null;
+  if (ban.type !== null && !LOAI_KHACH_HOP_LE.includes(ban.type)) {
+    throw new Error('Loại khách không hợp lệ. Chỉ nhận: ' + LOAI_KHACH_HOP_LE.join(', ') + ' hoặc để trống.');
+  }
+
+  // --- Các trường còn lại: đưa về dạng chuẩn ---
+  ban.org = (ban.org === undefined || ban.org === null) ? null : (String(ban.org).trim() || null);
+  ban.clubId = (ban.clubId === undefined || ban.clubId === '') ? null : ban.clubId;
+  ban.hideOnBoard = Boolean(ban.hideOnBoard);
+  ban.totalHours = Number.isFinite(ban.totalHours) ? ban.totalHours : 0;
 }
+
+// ---------- Nạp dữ liệu tài khoản ngay khi file được tải ----------
+// Để getCurrentUser() (đồng bộ) luôn có danh sách tài khoản để tra.
+docNguoiDung();
+
+// ---------- Cấu hình ----------
 
 /**
- * Kiểm tra dữ liệu và dựng đối tượng tài khoản chuẩn.
- *   - Cập nhật (nguoiDungCu khác null): trường nào không gửi thì giữ giá trị cũ.
- *   - Thêm mới: trường nào không gửi thì dùng mặc định.
- * Không đặt id, code, createdAt ở đây; hàm saveUser đặt sau.
- * Các trường thừa (ví dụ demoNote) được giữ nguyên.
+ * Trả về bản sao sâu của MỌI export trong js/config.js, dạng { TANG, GOI_CHO_NGOI, PHONG_HOP, ... }.
+ * Bản sao không bị đóng băng nên sửa thoải mái không ảnh hưởng config.js.
+ * Chưa hợp nhất giá trị do Admin chỉnh (việc đó thuộc M13). Hàm đồng bộ, không trễ.
  */
-function xayDungNguoiDung(dauVao, nguoiDungCu) {
-  const hopNhat = { ...(nguoiDungCu || {}), ...dauVao };
-
-  // Họ tên
-  const ten = chuanHoaChuoi(hopNhat.name);
-  if (!ten) throw taoLoi('Vui lòng nhập họ tên.', 'THIEU_TEN', 'name');
-
-  // Liên hệ chính: email hoặc số điện thoại
-  const lienHe = chuanHoaDinhDanh(hopNhat.contact);
-  if (!lienHe) {
-    throw taoLoi('Vui lòng nhập email hoặc số điện thoại.', 'THIEU_LIEN_HE', 'contact');
-  }
-  if (lienHe.includes('@')) {
-    if (!MAU_EMAIL.test(lienHe)) {
-      throw taoLoi('Email chưa đúng định dạng. Ví dụ: ten@example.com.', 'EMAIL_SAI_DINH_DANG', 'contact');
-    }
-  } else if (!MAU_SO_DIEN_THOAI.test(lienHe)) {
-    throw taoLoi(
-      'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0. Ví dụ: 0912345678.',
-      'SDT_SAI_DINH_DANG',
-      'contact'
-    );
-  }
-
-  // Số điện thoại: nếu để trống mà liên hệ chính là số điện thoại thì dùng luôn số đó.
-  let soDienThoai = boKhoangTrang(chuanHoaChuoi(hopNhat.phone));
-  if (soDienThoai === '') {
-    soDienThoai = MAU_SO_DIEN_THOAI.test(lienHe) ? lienHe : null;
-  } else if (!MAU_SO_DIEN_THOAI.test(soDienThoai)) {
-    throw taoLoi(
-      'Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0. Ví dụ: 0912345678.',
-      'SDT_SAI_DINH_DANG',
-      'phone'
-    );
-  }
-
-  // Mật khẩu giả (không mã hóa, không cắt khoảng trắng)
-  const matKhau = typeof hopNhat.passwordDemo === 'string' ? hopNhat.passwordDemo : '';
-  if (matKhau.trim() === '') {
-    throw taoLoi('Vui lòng nhập mật khẩu.', 'THIEU_MAT_KHAU', 'passwordDemo');
-  }
-
-  // Vai trò: mặc định là khách
-  const vaiTro = hopNhat.role ?? 'guest';
-  if (!VAI_TRO_HOP_LE.includes(vaiTro)) {
-    throw taoLoi('Vai trò không hợp lệ. Chỉ nhận: khách, nhân viên hoặc quản lý.', 'VAI_TRO_SAI', 'role');
-  }
-
-  // Loại khách: sinh viên, đi làm hoặc để trống (nhân viên, quản lý)
-  const loaiKhach = hopNhat.type ?? null;
-  if (loaiKhach !== null && !LOAI_KHACH_HOP_LE.includes(loaiKhach)) {
-    throw taoLoi('Loại khách không hợp lệ. Chỉ nhận: sinh viên hoặc đi làm.', 'LOAI_KHACH_SAI', 'type');
-  }
-
-  // Tổng giờ tích lũy
-  const tongGio = Number(hopNhat.totalHours ?? 0);
-  if (!Number.isFinite(tongGio) || tongGio < 0) {
-    throw taoLoi('Tổng giờ tích lũy phải là số không âm.', 'TONG_GIO_SAI', 'totalHours');
-  }
-
-  return {
-    ...hopNhat,
-    name: ten,
-    contact: lienHe,
-    phone: soDienThoai,
-    passwordDemo: matKhau,
-    role: vaiTro,
-    type: loaiKhach,
-    org: chuanHoaChuoi(hopNhat.org) || null,
-    clubId: hopNhat.clubId ?? null,
-    hideOnBoard: Boolean(hopNhat.hideOnBoard),
-    totalHours: tongGio,
-  };
+export function getConfig() {
+  const banSao = {};
+  for (const [ten, giaTri] of Object.entries(config)) banSao[ten] = saoSau(giaTri);
+  return banSao;
 }
 
-/** Ném lỗi nếu email hoặc số điện thoại của ứng viên trùng với tài khoản trong danh sách "nguoiKhac". */
-function kiemTraKhongTrung(ungVien, nguoiKhac) {
-  const cuaUngVien = dinhDanhCua(ungVien);
-  for (const khac of nguoiKhac) {
-    for (const dinhDanh of dinhDanhCua(khac)) {
-      if (!cuaUngVien.includes(dinhDanh)) continue;
+// ---------- Tài khoản ----------
 
-      if (dinhDanh.includes('@')) {
-        throw taoLoi(
-          'Email này đã được dùng cho một tài khoản khác. Hãy dùng email khác hoặc đăng nhập.',
-          'TRUNG_LIEN_HE',
-          'contact'
-        );
-      }
-      const truong = chuanHoaDinhDanh(ungVien.contact) === dinhDanh ? 'contact' : 'phone';
-      throw taoLoi(
-        'Số điện thoại này đã được dùng cho một tài khoản khác. Hãy dùng số khác hoặc đăng nhập.',
-        'TRUNG_LIEN_HE',
-        truong
-      );
-    }
-  }
-}
-
-// ---------- Các hàm xuất ra ----------
-
-/**
- * Trả về toàn bộ nội dung js/config.js dưới dạng một đối tượng thường
- * (TANG, GOI_CHO_NGOI, PHONG_HOP, MENU, QUY_TAC, ...). Là bản sao sâu nên giao diện
- * sửa thoải mái mà không ảnh hưởng cấu hình gốc.
- * Chưa hợp nhất giá trị Admin chỉnh (làm ở M13).
- */
-export async function getConfig() {
-  await trễ();
-  return banSaoSau(Object.fromEntries(Object.entries(config)));
-}
-
-/** Trả về mảng toàn bộ tài khoản (gồm cả trường passwordDemo vì đây là dữ liệu demo). */
+/** Danh sách mọi tài khoản (có cả passwordDemo). Trễ 200-500 ms. */
 export async function getUsers() {
-  await trễ();
+  await tre();
   return docNguoiDung();
 }
 
-/** Trả về tài khoản theo id, hoặc null nếu không có. */
+/** Tài khoản theo id, hoặc null nếu không có. Trễ 200-500 ms. */
 export async function getUserById(id) {
-  await trễ();
-  if (id === null || id === undefined || id === '') return null;
-  return docNguoiDung().find((nguoiDung) => nguoiDung.id === id) ?? null;
+  await tre();
+  const nguoi = docNguoiDung().find((u) => u.id === id);
+  return nguoi || null;
 }
 
 /**
- * Thêm mới (không có id) hoặc cập nhật (có id) một tài khoản; trả về tài khoản đã lưu.
- *   - Thêm mới: tự tạo id, mã khách LM-xxxxxx và ngày tạo (theo đồng hồ mô phỏng).
- *     Bắt buộc có họ tên, contact (email hoặc số điện thoại) và passwordDemo.
- *     Vai trò mặc định là 'guest'.
- *   - Cập nhật: gộp các trường được gửi lên vào tài khoản cũ; id, code, createdAt không đổi.
- *     Có id nhưng không tìm thấy thì ném lỗi, không tự tạo mới.
- * Ném lỗi tiếng Việt nếu email hoặc số điện thoại trùng tài khoản khác, hoặc dữ liệu sai.
+ * Tạo mới hoặc cập nhật tài khoản. Trả về tài khoản đã lưu. Trễ 200-500 ms.
+ *
+ * Có id: tìm tài khoản cũ; không thấy thì báo lỗi, KHÔNG tự tạo mới. Gộp các trường gửi lên
+ *   vào tài khoản cũ (trường undefined bị bỏ qua). id, code, createdAt không đổi được
+ *   (nếu gửi lên thì bị bỏ qua, không báo lỗi).
+ * Không có id: tạo mới, role mặc định 'guest', sinh id và code (xem ghi chú đầu file),
+ *   totalHours = 0, createdAt = giờ mô phỏng. Chỉ nhận các trường: name, contact, phone,
+ *   passwordDemo, role, type, org, clubId, hideOnBoard.
+ * Quy tắc contact, phone, trùng lặp: xem kiemTraTaiKhoan ở trên.
+ * Hàm này KHÔNG tự đăng nhập tài khoản mới.
  */
-export async function saveUser(user) {
-  await trễ();
-
-  if (!user || typeof user !== 'object') {
-    throw taoLoi('Dữ liệu tài khoản không hợp lệ.', 'DU_LIEU_SAI');
+export async function saveUser(duLieu) {
+  await tre();
+  if (!duLieu || typeof duLieu !== 'object' || Array.isArray(duLieu)) {
+    throw new Error('Dữ liệu tài khoản không hợp lệ.');
   }
 
   const danhSach = docNguoiDung();
-  const coId = user.id !== undefined && user.id !== null && user.id !== '';
+  const coId = duLieu.id !== undefined && duLieu.id !== null && duLieu.id !== '';
 
-  let nguoiDungCu = null;
-  let viTri = -1;
   if (coId) {
-    viTri = danhSach.findIndex((nguoiDung) => nguoiDung.id === user.id);
+    // ----- Cập nhật -----
+    const viTri = danhSach.findIndex((u) => u.id === duLieu.id);
     if (viTri === -1) {
-      throw taoLoi('Không tìm thấy tài khoản cần cập nhật.', 'KHONG_TIM_THAY', 'id');
+      throw new Error('Không tìm thấy tài khoản cần cập nhật.');
     }
-    nguoiDungCu = danhSach[viTri];
+    const ban = { ...danhSach[viTri] };
+    for (const [khoa, giaTri] of Object.entries(duLieu)) {
+      if (TRUONG_BAT_BIEN.includes(khoa) || giaTri === undefined) continue;
+      ban[khoa] = giaTri;
+    }
+    kiemTraTaiKhoan(ban, danhSach);
+    danhSach[viTri] = ban;
+    store.set(KHOA_NGUOI_DUNG, danhSach);
+    return saoSau(ban);
   }
 
-  const nguoiDungMoi = xayDungNguoiDung(user, nguoiDungCu);
-  const nguoiKhac = nguoiDungCu
-    ? danhSach.filter((nguoiDung) => nguoiDung.id !== nguoiDungCu.id)
-    : danhSach;
-  kiemTraKhongTrung(nguoiDungMoi, nguoiKhac);
+  // ----- Tạo mới -----
+  const ban = {
+    name: duLieu.name,
+    contact: duLieu.contact,
+    phone: duLieu.phone,
+    passwordDemo: duLieu.passwordDemo,
+    role: duLieu.role === undefined || duLieu.role === null ? 'guest' : duLieu.role,
+    type: duLieu.type,
+    org: duLieu.org,
+    clubId: duLieu.clubId,
+    hideOnBoard: duLieu.hideOnBoard,
+    totalHours: 0,
+  };
+  kiemTraTaiKhoan(ban, danhSach);
+  ban.id = taoIdMoi(danhSach);
+  ban.code = taoMaKhachMoi(danhSach);
+  ban.createdAt = now().toISOString();
 
-  const danhSachMoi = [...danhSach];
-  if (nguoiDungCu) {
-    nguoiDungMoi.id = nguoiDungCu.id;
-    nguoiDungMoi.code = nguoiDungCu.code;
-    nguoiDungMoi.createdAt = nguoiDungCu.createdAt;
-    danhSachMoi[viTri] = nguoiDungMoi;
-  } else {
-    nguoiDungMoi.id = taoIdMoi(danhSach);
-    nguoiDungMoi.code = taoMaKhachMoi(danhSach);
-    nguoiDungMoi.createdAt = now().toISOString();
-    danhSachMoi.push(nguoiDungMoi);
-  }
-
-  store.set(KHOA_NGUOI_DUNG, danhSachMoi);
-  return nguoiDungMoi;
+  danhSach.push(ban);
+  store.set(KHOA_NGUOI_DUNG, danhSach);
+  return saoSau(ban);
 }
+
+// ---------- Đăng nhập ----------
 
 /**
- * Đăng nhập bằng email hoặc số điện thoại và mật khẩu giả.
- * Thành công: lưu id người đang đăng nhập vào store (các tab khác cùng thấy) và trả về tài khoản.
- * Thất bại: ném lỗi "Email hoặc số điện thoại không đúng..." hoặc "Mật khẩu không đúng...".
+ * Đăng nhập bằng email hoặc số điện thoại và mật khẩu (giả). Trả về tài khoản. Trễ 200-500 ms.
+ * Tra theo cả contact và phone. Email không phân biệt hoa thường; số điện thoại bỏ khoảng trắng.
+ * Sai tài khoản và sai mật khẩu dùng hai thông báo riêng (quyết định G-login).
+ * Thành công thì lưu id vào khóa lumen-current-user (các tab khác thấy ngay).
  */
-export async function login(contact, password) {
-  await trễ();
-
-  const dinhDanh = chuanHoaDinhDanh(contact);
-  if (!dinhDanh) {
-    throw taoLoi('Vui lòng nhập email hoặc số điện thoại.', 'THIEU_LIEN_HE', 'contact');
+export async function login(emailHoacSdt, matKhau) {
+  await tre();
+  const dinhDanh = chuanHoaLienHe(emailHoacSdt);
+  const nguoi = dinhDanh === '' ? undefined : docNguoiDung().find((u) =>
+    chuanHoaLienHe(u.contact) === dinhDanh || chuanHoaSdt(u.phone) === dinhDanh
+  );
+  if (!nguoi) throw new Error(LOI_SAI_TAI_KHOAN);
+  if (typeof nguoi.passwordDemo !== 'string' || nguoi.passwordDemo !== matKhau) {
+    throw new Error(LOI_SAI_MAT_KHAU);
   }
-  if (typeof password !== 'string' || password === '') {
-    throw taoLoi('Vui lòng nhập mật khẩu.', 'THIEU_MAT_KHAU', 'passwordDemo');
-  }
-
-  const nguoiDung = docNguoiDung().find((u) => dinhDanhCua(u).includes(dinhDanh));
-  if (!nguoiDung) {
-    throw taoLoi(
-      'Email hoặc số điện thoại không đúng. Hãy kiểm tra lại hoặc đăng ký tài khoản mới.',
-      'SAI_LIEN_HE',
-      'contact'
-    );
-  }
-  if (nguoiDung.passwordDemo !== password) {
-    throw taoLoi('Mật khẩu không đúng. Vui lòng thử lại.', 'SAI_MAT_KHAU', 'passwordDemo');
-  }
-
-  store.set(KHOA_NGUOI_DANG_NHAP, nguoiDung.id);
-  return nguoiDung;
+  store.set(KHOA_DANG_NHAP, nguoi.id);
+  return saoSau(nguoi);
 }
 
-/** Đăng xuất: xóa người đang đăng nhập khỏi store (các tab khác cũng thấy đã đăng xuất). */
+/** Đăng xuất: xóa khóa lumen-current-user (các tab khác thấy ngay). Trễ 200-500 ms. */
 export async function logout() {
-  await trễ();
-  store.remove(KHOA_NGUOI_DANG_NHAP);
+  await tre();
+  store.remove(KHOA_DANG_NHAP);
 }
 
 /**
- * Trả về tài khoản đang đăng nhập (dữ liệu mới nhất trong danh sách) hoặc null.
- * Nếu id đã lưu không còn tài khoản tương ứng (ví dụ tài khoản bị xóa) thì tự đăng xuất và trả null.
+ * Tài khoản đang đăng nhập, hoặc null nếu chưa đăng nhập (hoặc tài khoản đã bị xóa).
+ * Đọc id rồi tra lại danh sách nên luôn là dữ liệu mới nhất (có cả passwordDemo).
+ * Hàm đồng bộ, không trễ, dùng được trực tiếp cho header.
  */
-export async function getCurrentUser() {
-  await trễ();
-
-  const id = store.get(KHOA_NGUOI_DANG_NHAP, null);
+export function getCurrentUser() {
+  const id = store.get(KHOA_DANG_NHAP);
   if (typeof id !== 'string' || id === '') return null;
-
-  const nguoiDung = docNguoiDung().find((u) => u.id === id);
-  if (!nguoiDung) {
-    store.remove(KHOA_NGUOI_DANG_NHAP);
-    return null;
-  }
-  return nguoiDung;
+  const nguoi = docNguoiDung().find((u) => u.id === id);
+  return nguoi || null;
 }
