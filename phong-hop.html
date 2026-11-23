@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phòng họp | Lumen 24</title>
+  <meta name="description" content="4 phòng họp tại Lumen 24 cho nhóm từ 3 đến 20 người, có máy chiếu, bảng và micro. Đặt phòng không cần chờ duyệt.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    /* Bố cục riêng của trang phòng họp. Màu lấy từ tokens.css, có giá trị dự phòng. */
+    .ph-page {
+      --p-chu: var(--mau-chu, #1f2d3d);
+      --p-nhan: var(--mau-nhan, #f2b632);
+      --p-the: #ffffff;
+      --p-vien: rgba(31, 45, 61, 0.12);
+      --p-chu-phu: rgba(31, 45, 61, 0.72);
+      color: var(--p-chu);
+      padding-bottom: 3rem;
+    }
+    .ph-hero { padding: 2rem 0 1rem; }
+    .ph-hero h1 { margin: 0 0 .5rem; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .ph-hero p { margin: 0; max-width: 40rem; color: var(--p-chu-phu); }
+
+    .ph-luoi { display: grid; grid-template-columns: 1fr; gap: 1.25rem; padding-top: 1.5rem; }
+    @media (min-width: 640px) { .ph-luoi { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1100px) { .ph-luoi { grid-template-columns: repeat(4, 1fr); } }
+
+    .ph-the {
+      display: flex; flex-direction: column; gap: .75rem; padding: 1rem;
+      background: var(--p-the); border: 1px solid var(--p-vien);
+      border-radius: var(--ban-kinh, 16px); box-shadow: 0 2px 10px rgba(31, 45, 61, .06);
+    }
+    .ph-the--tamngung { opacity: .7; }
+
+    .ph-anh {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem;
+      aspect-ratio: 16 / 10; border-radius: 12px; text-align: center;
+      background: linear-gradient(135deg, #fdebb8 0%, #f7d17a 55%, #e9b44c 100%);
+      color: rgba(31, 45, 61, .75);
+    }
+    .ph-anh__bieutuong { font-size: 2rem; line-height: 1; }
+    .ph-anh__chuthich { font-size: .8rem; letter-spacing: .03em; }
+
+    .ph-the h2 { margin: 0; font-size: 1.1rem; line-height: 1.3; }
+    .ph-tang {
+      align-self: flex-start; padding: .15rem .65rem; border-radius: 999px;
+      background: rgba(242, 182, 50, .22); font-size: .78rem; font-weight: 700;
+    }
+    .ph-thongtin { margin: 0; display: grid; gap: .5rem; }
+    .ph-thongtin div { display: grid; grid-template-columns: 6.5rem 1fr; gap: .5rem; font-size: .93rem; align-items: baseline; }
+    .ph-thongtin dt { margin: 0; color: var(--p-chu-phu); }
+    .ph-thongtin dd { margin: 0; overflow-wrap: anywhere; }
+    .ph-thietbi { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
+    .ph-thietbi li { padding: .1rem .6rem; border: 1px solid var(--p-vien); border-radius: 999px; font-size: .82rem; }
+    .ph-gia { font-size: 1.35rem; font-weight: 700; }
+    .ph-gia small { font-size: .85rem; font-weight: 400; color: var(--p-chu-phu); }
+    .ph-the .btn { margin-top: auto; text-align: center; justify-content: center; }
+    .ph-tamngung-nhan { margin: auto 0 0; padding: .6rem; text-align: center; border-radius: 12px; background: rgba(31, 45, 61, .08); font-size: .9rem; }
+
+    .ph-ghichu { margin: 1.5rem 0 0; padding: 0; list-style: none; display: grid; gap: .5rem; color: var(--p-chu-phu); font-size: .95rem; }
+    .ph-ghichu li { padding: .75rem 1rem; border-radius: 12px; background: rgba(242, 182, 50, .14); border: 1px solid rgba(242, 182, 50, .4); color: var(--p-chu); }
+    .ph-trangthai { grid-column: 1 / -1; padding: 1.5rem; text-align: center; color: var(--p-chu-phu); border: 1px dashed var(--p-vien); border-radius: 12px; }
+    .ph-trangthai--loi { color: #b42318; border-color: #b42318; }
+    .ph-cuoi { margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <main class="ph-page">
+    <div class="container ph-hero">
+      <h1>Phòng họp</h1>
+      <p>Bốn phòng cho nhóm từ 3 đến 20 người, đủ máy chiếu, bảng và micro. Chọn phòng, chọn giờ, đặt cọc là xong.</p>
+    </div>
+
+    <section class="container" aria-label="Danh sách phòng họp">
+      <div class="ph-luoi" id="luoi-phong" aria-live="polite">
+        <p class="ph-trangthai">Đang tải danh sách phòng…</p>
+      </div>
+      <ul class="ph-ghichu" id="ghi-chu"></ul>
+      <p class="ph-cuoi">Muốn so sánh với giá chỗ ngồi? Xem <a href="./bang-gia.html">bảng giá</a>.</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { getConfig } from './js/api.js';
+
+    renderLayout();
+
+    // ---------- Hàm hỗ trợ ----------
+
+    /** Tạo phần tử DOM an toàn: chuỗi luôn thành văn bản, không bị hiểu là HTML. */
+    function el(tag, attrs = {}, children = []) {
+      const node = document.createElement(tag);
+      for (const [khoa, giaTri] of Object.entries(attrs)) {
+        if (giaTri === null || giaTri === undefined || giaTri === false) continue;
+        if (khoa === 'class') node.className = giaTri;
+        else if (khoa === 'text') node.textContent = giaTri;
+        else node.setAttribute(khoa, giaTri === true ? '' : giaTri);
+      }
+      for (const con of [].concat(children)) {
+        if (con === null || con === undefined || con === false) continue;
+        node.append(con);
+      }
+      return node;
+    }
+
+    /** Định dạng tiền: 60000 -> "60.000đ". */
+    function tien(so) {
+      return String(Math.round(so)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
+    }
+
+    /** Sức chứa: "3-5 người". */
+    function sucChua(phong) {
+      return phong.capacityMin === phong.capacityMax
+        ? phong.capacityMin + ' người'
+        : phong.capacityMin + '-' + phong.capacityMax + ' người';
+    }
+
+    /** Khối ảnh giữ chỗ (nền gradient, chú thích "Ảnh minh họa"). */
+    function khoiAnh(tenPhong) {
+      return el('div', { class: 'ph-anh', role: 'img', 'aria-label': 'Ảnh minh họa: ' + tenPhong }, [
+        el('span', { class: 'ph-anh__bieutuong', 'aria-hidden': 'true', text: '🪑' }),
+        el('span', { class: 'ph-anh__chuthich', text: 'Ảnh minh họa' }),
+      ]);
+    }
+
+    function dongThongTin(nhan, noiDung) {
+      return el('div', {}, [el('dt', { text: nhan }), el('dd', {}, noiDung)]);
+    }
+
+    // ---------- Vẽ danh sách phòng ----------
+
+    function vePhong(cfg) {
+      const luoi = document.getElementById('luoi-phong');
+      luoi.replaceChildren();
+
+      if (!Array.isArray(cfg.PHONG_HOP) || cfg.PHONG_HOP.length === 0) {
+        luoi.append(el('p', { class: 'ph-trangthai', text: 'Hiện chưa có phòng họp nào.' }));
+        return;
+      }
+
+      const soGioCoc = cfg.QUY_TAC.cocPhongSoGio;
+
+      for (const phong of cfg.PHONG_HOP) {
+        const tienCoc = phong.pricePerHour * soGioCoc;
+        const phanCuoi = phong.active
+          ? el('a', {
+              class: 'btn btn--primary',
+              href: './dat-phong.html?phong=' + encodeURIComponent(phong.id),
+              'aria-label': 'Đặt ' + phong.name,
+              text: 'Đặt phòng',
+            })
+          : el('p', { class: 'ph-tamngung-nhan', text: 'Phòng tạm ngưng hoạt động' });
+
+        luoi.append(el('article', { class: 'ph-the' + (phong.active ? '' : ' ph-the--tamngung') }, [
+          khoiAnh(phong.name),
+          el('span', { class: 'ph-tang', text: 'Tầng ' + phong.floor }),
+          el('h2', { text: phong.name }),
+          el('dl', { class: 'ph-thongtin' }, [
+            dongThongTin('Sức chứa', sucChua(phong)),
+            dongThongTin('Thiết bị', el('ul', { class: 'ph-thietbi' },
+              phong.equipment.map((tb) => el('li', { text: tb })))),
+            dongThongTin('Giá chuẩn', el('span', { class: 'ph-gia' }, [
+              tien(phong.pricePerHour),
+              el('small', { text: '/giờ' }),
+            ])),
+            dongThongTin('Đặt cọc', tien(tienCoc)),
+          ]),
+          phanCuoi,
+        ]));
+      }
+
+      document.getElementById('ghi-chu').replaceChildren(
+        el('li', { text: 'Giá chuẩn mỗi giờ. Ưu đãi (nếu có) được tính khi bạn chọn giờ ở bước đặt phòng.' }),
+        el('li', { text: 'Đặt phòng không cần chờ duyệt, chỉ cần đặt cọc. Chính sách hoàn cọc xem ở trang chính sách hoàn cọc.' }),
+        el('li', { text: 'Phòng ở tầng 3 vẫn đặt được kể cả khi chỗ ngồi tự do của tầng 3 đang đóng.' })
+      );
+    }
+
+    // ---------- Khởi chạy ----------
+
+    function khoiChay() {
+      try {
+        vePhong(getConfig());
+      } catch (loi) {
+        document.getElementById('luoi-phong').replaceChildren(
+          el('p', { class: 'ph-trangthai ph-trangthai--loi', role: 'alert', text: 'Không tải được danh sách phòng. Vui lòng tải lại trang.' })
+        );
+      }
+    }
+
+    khoiChay();
+  </script>
+</body>
+</html>
