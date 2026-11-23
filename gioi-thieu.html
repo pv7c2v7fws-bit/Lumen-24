@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- gioi-thieu.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Giới thiệu – Lumen 24</title>
+  <meta name="description" content="Sứ mệnh, tầm nhìn, giá trị cốt lõi và khách hàng mục tiêu của Lumen 24, study cafe mở cửa 24/7.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .pg-main { padding-bottom: 48px; }
+    .pg-head { padding: 40px 0 16px; }
+    .pg-head h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .pg-head p { margin: 0; max-width: 62ch; line-height: 1.6; }
+    .pg-sec { padding: 20px 0; }
+    .pg-sec > h2 { margin: 0 0 4px; font-size: clamp(1.25rem, 3.5vw, 1.6rem); }
+    .pg-sec > .pg-sub { margin: 0 0 14px; }
+    .pg-small { font-size: .85rem; opacity: .75; }
+    .pg-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+    .pg-card {
+      background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 10px rgba(31, 42, 68, .06);
+    }
+    .pg-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+    .pg-card p { margin: 0; line-height: 1.6; }
+    .pg-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%; margin-bottom: 10px;
+      background: var(--mau-nhan, #f2b630); color: var(--mau-chu, #1f2a44); font-weight: 700;
+    }
+    .pg-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    @media (min-width: 768px) {
+      .pg-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1100px) {
+      .pg-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="pg-main">
+    <div class="container">
+      <header class="pg-head">
+        <h1>Giới thiệu Lumen 24</h1>
+        <p>Study cafe mở cửa 24/7 dành cho sinh viên và người đi làm khu vực Trịnh Văn Bô: chỗ ngồi yên tĩnh, giá rõ ràng, an toàn và có cộng đồng cùng tiến bộ.</p>
+      </header>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-su-menh">
+        <h2 id="tieu-de-su-menh">Sứ mệnh và tầm nhìn</h2>
+        <p class="pg-small pg-sub">Bản nháp, sẽ chỉnh sau</p>
+        <div class="pg-grid pg-grid--2">
+          <article class="pg-card">
+            <h3>Sứ mệnh</h3>
+            <p>Cung cấp không gian học tập và làm việc yên tĩnh, tiện nghi, giá hợp lý, mở cửa 24/7 cho sinh viên và người đi làm khu vực Trịnh Văn Bô.</p>
+          </article>
+          <article class="pg-card">
+            <h3>Tầm nhìn</h3>
+            <p>Trở thành nơi học tập và làm việc quen thuộc của cộng đồng sinh viên khu vực này, rồi mở rộng sang các cụm trường khác khi mô hình ổn định.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-gia-tri">
+        <h2 id="tieu-de-gia-tri">Giá trị cốt lõi</h2>
+        <div class="pg-grid pg-grid--2 pg-grid--4">
+          <article class="pg-card">
+            <span class="pg-badge" aria-hidden="true">1</span>
+            <h3>Giá minh bạch</h3>
+            <p>Bảng giá công khai, tính theo gói rõ ràng. Bạn biết mình trả bao nhiêu trước khi ngồi xuống.</p>
+          </article>
+          <article class="pg-card">
+            <span class="pg-badge" aria-hidden="true">2</span>
+            <h3>Yên tĩnh</h3>
+            <p>Khu học giữ yên lặng, điện thoại và trao đổi nhóm có khu riêng hoặc phòng họp.</p>
+          </article>
+          <article class="pg-card">
+            <span class="pg-badge" aria-hidden="true">3</span>
+            <h3>An toàn</h3>
+            <p>Không gian mở cửa cả đêm với quy tắc rõ ràng và nhân viên trực, để bạn yên tâm học muộn.</p>
+          </article>
+          <article class="pg-card">
+            <span class="pg-badge" aria-hidden="true">4</span>
+            <h3>Cộng đồng</h3>
+            <p>Tích điểm theo giờ ngồi, vinh danh người chăm chỉ và ưu đãi cho các câu lạc bộ.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-khach">
+        <h2 id="tieu-de-khach">Khách hàng mục tiêu</h2>
+        <div class="pg-grid pg-grid--2">
+          <article class="pg-card">
+            <h3>Sinh viên</h3>
+            <p>Sinh viên các trường quanh khu vực Trịnh Văn Bô cần chỗ ôn bài, làm bài nhóm, chạy deadline và ôn thi, kể cả ban đêm.</p>
+          </article>
+          <article class="pg-card">
+            <h3>Người đi làm</h3>
+            <p>Người đi làm khu vực Trịnh Văn Bô cần một chỗ làm việc tập trung, có phòng họp khi cần gặp nhóm hoặc đối tác.</p>
+          </article>
+        </div>
+        <div class="pg-cta">
+          <a class="btn btn--primary" href="./bang-gia.html">Xem bảng giá</a>
+          <a class="btn" href="./so-do-cho.html">Xem chỗ trống</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    renderLayout();
+  </script>
+</body>
+</html>
