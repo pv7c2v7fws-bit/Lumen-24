@@ -1,31 +1,39 @@
 // js/api.js
 // -----------------------------------------------------------------------------
-// Lớp truy cập dữ liệu của Lumen 24 (Bước 1c, cập nhật ở Bước 3a). Mọi trang đi qua file này
-// để đọc và ghi dữ liệu; sau này có thể thay bằng cơ sở dữ liệu thật mà không sửa giao diện.
+// Lớp truy cập dữ liệu của Lumen 24 (Bước 1c, cập nhật ở Bước 3a và Bước 4a). Mọi trang đi qua
+// file này để đọc và ghi dữ liệu; sau này có thể thay bằng cơ sở dữ liệu thật mà không sửa giao diện.
 //
-// Hiện cung cấp: cấu hình (getConfig), tài khoản (getUsers, getUserById, saveUser, deleteUser)
-// và trạng thái đăng nhập (login, logout, getCurrentUser).
+// Hiện cung cấp: cấu hình (getConfig), tài khoản (getUsers, getUserById, saveUser, deleteUser),
+// trạng thái đăng nhập (login, logout, getCurrentUser) và thanh toán QR giả (taoThanhToan,
+// layThanhToan, xacNhanThanhToan, thatBaiThanhToan, hoanCoc, lichSuGiaoDich, tongHopThu,
+// batTatGianDoan).
 //
 // Thay đổi ở Bước 3a:
 //   - Mã khách (LM-000123) lấy từ BỘ ĐẾM lưu trong store (khóa lumen-code-counter), không còn
 //     là "số lớn nhất + 1" nữa. Bộ đếm chỉ tăng, nên mã của tài khoản đã xóa không bị cấp lại.
 //   - Thêm deleteUser(id).
 //
+// Thay đổi ở Bước 4a (thanh toán, M6):
+//   - Thêm khóa lumen-payments (mảng thanh toán) và lumen-outage (cờ gián đoạn).
+//   - Thêm 8 hàm thanh toán ở cuối file. Các hàm cũ giữ nguyên chữ ký và cách chạy.
+//
 // Độ trễ giả lập:
 //   - getConfig() và getCurrentUser() là hàm ĐỒNG BỘ, không trễ, vì chỉ đọc dữ liệu
 //     có sẵn và được header gọi liên tục.
 //   - Các hàm còn lại là async và trễ ngẫu nhiên 200-500 ms qua hàm tre() dùng chung.
 //     Mỗi hàm chờ xong độ trễ rồi mới đọc và ghi dữ liệu trong một khối đồng bộ,
-//     nên không có hai thao tác chen vào giữa chừng.
+//     nên không có hai thao tác chen vào giữa chừng (đây cũng là lý do bấm "xác nhận"
+//     hai lần chỉ ghi được một giao dịch).
 //
 // LƯU Ý VỀ MẬT KHẨU: passwordDemo chỉ là chuỗi giả cho demo, KHÔNG mã hóa, lưu nguyên
 // văn trong store. getUsers() và getCurrentUser() trả cả passwordDemo (dữ liệu demo).
 // Tuyệt đối không dùng mật khẩu thật.
 //
 // LƯU Ý VỀ TÍNH NGẪU NHIÊN VÀ GIỜ GIẤC:
-//   - File này không gọi new Date(); giờ chỉ lấy qua now() của js/clock.js (mục 1.3).
-//   - Math.random được dùng ở hai chỗ: (1) 4 ký tự ngẫu nhiên cuối id tài khoản mới
-//     (đây là ngoại lệ duy nhất cho dữ liệu LƯU TRỮ), (2) độ trễ giả lập trong tre(),
+//   - File này không gọi new Date() rỗng; giờ hiện tại chỉ lấy qua now() của js/clock.js (mục 1.3).
+//     Chỗ duy nhất dùng new Date(số) là đổi mili giây sang chuỗi ngày giờ Việt Nam (không đọc giờ máy).
+//   - Math.random được dùng ở hai chỗ: (1) 4 ký tự ngẫu nhiên cuối id tài khoản và id thanh toán
+//     (ngoại lệ duy nhất cho dữ liệu LƯU TRỮ), (2) độ trễ giả lập trong tre(),
 //     chỉ ảnh hưởng thời gian chờ chứ không ảnh hưởng dữ liệu.
 //
 // Khóa lumen-current-user chỉ lưu id của người đang đăng nhập (không lưu cả tài khoản),
@@ -36,10 +44,13 @@ import * as store from './store.js';
 import * as config from './config.js';
 import {
   taoNguoiDungSeed,
+  taoThanhToanSeed,
   boDemMaSeed,
   KHOA_NGUOI_DUNG,
   KHOA_DANG_NHAP,
   KHOA_BO_DEM_MA,
+  KHOA_THANH_TOAN,
+  KHOA_GIAN_DOAN,
 } from './seed.js';
 import { now } from './clock.js';
 
@@ -57,6 +68,9 @@ export { KHOA_DANG_NHAP };
  * Định nghĩa ở seed.js (để resetDemoData xóa được), xuất lại ở đây.
  */
 export { KHOA_BO_DEM_MA };
+
+/** Khóa mảng thanh toán và khóa cờ gián đoạn (Bước 4a). Định nghĩa ở seed.js, xuất lại ở đây. */
+export { KHOA_THANH_TOAN, KHOA_GIAN_DOAN };
 
 const TRE_TOI_THIEU_MS = 200;
 const TRE_TOI_DA_MS = 500;
@@ -80,6 +94,71 @@ const LOI_SAI_TAI_KHOAN = 'Email hoặc số điện thoại không đúng. Vui 
 const LOI_SAI_MAT_KHAU = 'Mật khẩu không đúng. Vui lòng thử lại.';
 const LOI_KHONG_TIM_THAY_DE_XOA = 'Không tìm thấy tài khoản cần xóa. Có thể tài khoản đã bị xóa trước đó.';
 const LOI_XOA_QUAN_LY_CUOI = 'Không thể xóa tài khoản quản lý cuối cùng. Hãy chuyển một tài khoản khác thành quản lý trước.';
+
+// ----- Hằng số thanh toán (Bước 4a, M6) -----
+
+/**
+ * Loại giao dịch (M6). Giá trị là mã không dấu; tên hiển thị tiếng Việt ở TEN_LOAI_GIAO_DICH.
+ */
+export const LOAI_GIAO_DICH = Object.freeze({
+  MUA_GOI: 'mua-goi',
+  GIA_HAN: 'gia-han',
+  PHU_PHI_VUOT_GIO: 'phu-phi-vuot-gio',
+  COC_PHONG: 'coc-phong',
+  TIEN_PHONG_CON_LAI: 'tien-phong-con-lai',
+  DO_UONG_AN_NHE: 'do-uong-an-nhe',
+  IN_AN: 'in-an',
+  VAN_PHONG_PHAM: 'van-phong-pham',
+  THE_THANG: 'the-thang',
+  HOAN_COC: 'hoan-coc',
+});
+
+/** Tên hiển thị tiếng Việt của từng loại giao dịch. */
+export const TEN_LOAI_GIAO_DICH = Object.freeze({
+  'mua-goi': 'Mua gói',
+  'gia-han': 'Gia hạn',
+  'phu-phi-vuot-gio': 'Phụ phí vượt giờ',
+  'coc-phong': 'Cọc phòng',
+  'tien-phong-con-lai': 'Tiền phòng còn lại',
+  'do-uong-an-nhe': 'Đồ uống và đồ ăn',
+  'in-an': 'In ấn',
+  'van-phong-pham': 'Văn phòng phẩm',
+  'the-thang': 'Thẻ tháng',
+  'hoan-coc': 'Hoàn cọc',
+});
+
+/**
+ * Trạng thái thanh toán (M6). Chuyển trạng thái hợp lệ:
+ *   cho-thanh-toan -> da-thanh-toan | that-bai | het-han
+ *   da-thanh-toan (chỉ loại coc-phong) -> da-hoan | mat-coc
+ *   Các trạng thái còn lại là cuối, không đổi nữa.
+ */
+export const TRANG_THAI_THANH_TOAN = Object.freeze({
+  CHO: 'cho-thanh-toan',
+  DA_THANH_TOAN: 'da-thanh-toan',
+  THAT_BAI: 'that-bai',
+  HET_HAN: 'het-han',
+  DA_HOAN: 'da-hoan',
+  MAT_COC: 'mat-coc',
+});
+
+/** Tên hiển thị tiếng Việt của từng trạng thái thanh toán. */
+export const TEN_TRANG_THAI_THANH_TOAN = Object.freeze({
+  'cho-thanh-toan': 'Chờ thanh toán',
+  'da-thanh-toan': 'Đã thanh toán',
+  'that-bai': 'Thất bại',
+  'het-han': 'Hết hạn',
+  'da-hoan': 'Đã hoàn',
+  'mat-coc': 'Mất cọc',
+});
+
+const DANH_SACH_LOAI = Object.values(LOAI_GIAO_DICH);
+const MOT_PHUT_MS = 60 * 1000;
+const MOT_GIO_MS = 60 * MOT_PHUT_MS;
+/** Giờ Việt Nam = UTC+7, không có giờ mùa hè. Dùng để chia ngày và tháng cho báo cáo. */
+const LECH_GIO_VN_MS = 7 * MOT_GIO_MS;
+const MAU_NGAY = /^\d{4}-\d{2}-\d{2}$/;
+const MAU_THANG = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 // ---------- Hàm hỗ trợ nội bộ ----------
 
@@ -354,7 +433,7 @@ export async function saveUser(duLieu) {
 }
 
 /**
- * [MỚI - Bước 3a] Xóa tài khoản theo id. Trả về true nếu xóa được. Trễ 200-500 ms.
+ * Xóa tài khoản theo id. Trả về true nếu xóa được. Trễ 200-500 ms.
  *   - Không tìm thấy id: ném lỗi tiếng Việt "Không tìm thấy tài khoản cần xóa...".
  *   - Tài khoản quản lý duy nhất còn lại: ném lỗi "Không thể xóa tài khoản quản lý cuối cùng...".
  *   - Nếu tài khoản bị xóa đang đăng nhập thì tự đăng xuất (xóa khóa lumen-current-user;
@@ -428,3 +507,9 @@ export function getCurrentUser() {
   const nguoi = docNguoiDung().find((u) => u.id === id);
   return nguoi || null;
 }
+
+// =============================================================================
+// Thanh toán QR giả (Bước 4a, M6)
+// =============================================================================
+//
+// Đối tượng thanh toán
