@@ -1,0 +1,160 @@
+<!doctype html>
+<!-- tuyen-dung.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tuyển dụng – Lumen 24</title>
+  <meta name="description" content="Vị trí phục vụ, pha chế, nhân viên đa năng và các ca làm việc tại Lumen 24. Form ứng tuyển demo.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .pg-main { padding-bottom: 48px; }
+    .pg-head { padding: 40px 0 16px; }
+    .pg-head h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .pg-head p { margin: 0; max-width: 62ch; line-height: 1.6; }
+    .pg-sec { padding: 20px 0; }
+    .pg-sec > h2 { margin: 0 0 14px; font-size: clamp(1.25rem, 3.5vw, 1.6rem); }
+    .pg-small { font-size: .85rem; opacity: .75; }
+    .pg-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+    .pg-card {
+      background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 10px rgba(31, 42, 68, .06);
+    }
+    .pg-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+    .pg-card p { margin: 0 0 10px; line-height: 1.6; }
+    .td-luong {
+      display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: .88rem; font-weight: 600;
+      background: rgba(242, 182, 48, .25);
+    }
+    .td-ca { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+    .td-ca li { background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 14px; padding: 14px 16px; }
+    .td-ca strong { display: block; margin-bottom: 2px; }
+    .td-form { display: grid; gap: 16px; }
+    .td-truong { display: grid; gap: 6px; }
+    .td-truong label, .td-truong legend { font-weight: 600; }
+    .td-truong input[type="text"], .td-truong input[type="email"], .td-truong input[type="tel"],
+    .td-truong select, .td-truong textarea {
+      width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; color: inherit;
+      border: 1px solid rgba(31, 42, 68, .35); border-radius: 10px; background: #fff;
+    }
+    .td-truong textarea { min-height: 110px; resize: vertical; }
+    .td-truong fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .td-truong .td-chon { display: flex; align-items: center; gap: 8px; font-weight: 400; }
+    .td-ketqua {
+      margin-top: 4px; padding: 12px 14px; border-radius: 12px; background: rgba(46, 160, 90, .15); font-weight: 600;
+    }
+    @media (min-width: 768px) {
+      .pg-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .td-ca { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (min-width: 1100px) {
+      .td-ca { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="pg-main">
+    <div class="container">
+      <header class="pg-head">
+        <h1>Tuyển dụng</h1>
+        <p>Lumen 24 mở cửa 24/7 nên cần những bạn nhiệt tình, cẩn thận và thích môi trường yên tĩnh. Ca làm linh hoạt, phù hợp sinh viên.</p>
+      </header>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-vi-tri">
+        <h2 id="tieu-de-vi-tri">Vị trí đang tuyển</h2>
+        <div class="pg-grid pg-grid--3">
+          <article class="pg-card">
+            <h3>Phục vụ</h3>
+            <p>Đón khách, hướng dẫn check-in, giữ trật tự khu học và dọn dẹp bàn ghế.</p>
+            <span class="td-luong">Thỏa thuận khi phỏng vấn</span>
+          </article>
+          <article class="pg-card">
+            <h3>Pha chế</h3>
+            <p>Pha chế đồ uống theo đơn, giữ quầy bar gọn gàng và kiểm tra nguyên liệu.</p>
+            <span class="td-luong">Thỏa thuận khi phỏng vấn</span>
+          </article>
+          <article class="pg-card">
+            <h3>Nhân viên đa năng</h3>
+            <p>Hỗ trợ cả phục vụ, pha chế, thu ngân và in ấn tùy ca.</p>
+            <span class="td-luong">Thỏa thuận khi phỏng vấn</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-ca">
+        <h2 id="tieu-de-ca">Ca làm việc</h2>
+        <ul class="td-ca">
+          <li><strong>Ca sáng</strong>6h – 13h</li>
+          <li><strong>Ca chiều</strong>13h – 19h</li>
+          <li><strong>Ca tối</strong>19h – 23h</li>
+          <li><strong>Ca đêm</strong>23h – 6h</li>
+        </ul>
+      </section>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-ung-tuyen">
+        <h2 id="tieu-de-ung-tuyen">Ứng tuyển</h2>
+        <p class="pg-small" style="margin:0 0 14px;">Đây là form giao diện cho bài tập, dữ liệu không được lưu.</p>
+        <div class="pg-card">
+          <form id="form-ung-tuyen" class="td-form" novalidate>
+            <div class="td-truong">
+              <label for="td-ten">Họ và tên</label>
+              <input id="td-ten" name="ten" type="text" autocomplete="name" required>
+            </div>
+            <div class="td-truong">
+              <label for="td-lien-he">Email hoặc số điện thoại</label>
+              <input id="td-lien-he" name="lienHe" type="text" autocomplete="email" required>
+            </div>
+            <div class="td-truong">
+              <label for="td-vi-tri">Vị trí ứng tuyển</label>
+              <select id="td-vi-tri" name="viTri" required>
+                <option value="">Chọn vị trí</option>
+                <option>Phục vụ</option>
+                <option>Pha chế</option>
+                <option>Nhân viên đa năng</option>
+              </select>
+            </div>
+            <div class="td-truong">
+              <fieldset>
+                <legend>Ca có thể làm</legend>
+                <label class="td-chon"><input type="checkbox" name="ca" value="Ca sáng (6h – 13h)"> Ca sáng (6h – 13h)</label>
+                <label class="td-chon"><input type="checkbox" name="ca" value="Ca chiều (13h – 19h)"> Ca chiều (13h – 19h)</label>
+                <label class="td-chon"><input type="checkbox" name="ca" value="Ca tối (19h – 23h)"> Ca tối (19h – 23h)</label>
+                <label class="td-chon"><input type="checkbox" name="ca" value="Ca đêm (23h – 6h)"> Ca đêm (23h – 6h)</label>
+              </fieldset>
+            </div>
+            <div class="td-truong">
+              <label for="td-gioi-thieu">Giới thiệu ngắn về bạn</label>
+              <textarea id="td-gioi-thieu" name="gioiThieu"></textarea>
+            </div>
+            <div>
+              <button class="btn btn--primary" type="submit">Gửi ứng tuyển</button>
+            </div>
+            <div id="td-ket-qua" class="td-ketqua" role="status" aria-live="polite" hidden></div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+
+    renderLayout();
+
+    const form = document.getElementById('form-ung-tuyen');
+    const ketQua = document.getElementById('td-ket-qua');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      // Chỉ là giao diện: không lưu, không gửi đi đâu.
+      ketQua.textContent = 'Đã ghi nhận (demo, không lưu dữ liệu)';
+      ketQua.hidden = false;
+      form.reset();
+    });
+  </script>
+</body>
+</html>
