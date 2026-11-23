@@ -1,0 +1,117 @@
+<!-- quen-mat-khau.html -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quên mật khẩu – Lumen 24</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .tk-trang { padding: 32px 0 56px; }
+    .tk-khung {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--mau-nen-the, #ffffff);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(20, 30, 60, 0.10);
+      padding: 24px 20px;
+    }
+    .tk-khung h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .tk-phu { margin: 0 0 20px; color: #55607a; font-size: 0.95rem; }
+    .tk-truong { margin-bottom: 16px; }
+    .tk-truong label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .tk-truong input {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 44px;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #b9c0d0;
+      border-radius: 10px;
+      background: #fff;
+      color: inherit;
+    }
+    .tk-truong input:focus-visible, .tk-btn:focus-visible, .tk-lien-ket:focus-visible {
+      outline: 3px solid var(--mau-nhan, #f2b134);
+      outline-offset: 2px;
+    }
+    .tk-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 20px;
+      font: inherit;
+      font-weight: 600;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: var(--mau-nhan, #f2b134);
+      color: #1b2a49;
+      width: 100%;
+    }
+    .tk-thong-bao { margin: 0 0 16px; padding: 12px 14px; border-radius: 10px; font-size: 0.95rem; }
+    .tk-thong-bao[hidden] { display: none; }
+    .tk-thong-bao--loi { background: #fdecea; color: #8a1c14; border: 1px solid #f3b7b1; }
+    .tk-thong-bao--ok { background: #e8f6ee; color: #14532d; border: 1px solid #a7d7b9; }
+    .tk-hang-lien-ket { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 16px 0 0; }
+    .tk-lien-ket { color: inherit; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container tk-trang">
+      <div class="tk-khung">
+        <h1>Quên mật khẩu</h1>
+        <p class="tk-phu">Nhập email hoặc số điện thoại đã đăng ký. Đây là chức năng giả lập, không có email hay tin nhắn nào được gửi đi.</p>
+
+        <p id="thong-bao" class="tk-thong-bao" hidden></p>
+
+        <form id="form-quen" novalidate>
+          <div class="tk-truong">
+            <label for="lien-he">Email hoặc số điện thoại</label>
+            <input id="lien-he" name="lien-he" type="text" autocomplete="username" inputmode="email" required>
+          </div>
+          <button class="tk-btn" type="submit">Gửi hướng dẫn</button>
+        </form>
+
+        <div class="tk-hang-lien-ket">
+          <a class="tk-lien-ket" href="./dang-nhap.html">Quay lại đăng nhập</a>
+          <a class="tk-lien-ket" href="./dang-ky.html">Đăng ký</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+
+    renderLayout();
+
+    const form = document.getElementById('form-quen');
+    const khungThongBao = document.getElementById('thong-bao');
+
+    function hienThongBao(loai, noiDung) {
+      khungThongBao.textContent = noiDung;
+      khungThongBao.className = 'tk-thong-bao tk-thong-bao--' + loai;
+      khungThongBao.setAttribute('role', loai === 'loi' ? 'alert' : 'status');
+      khungThongBao.hidden = false;
+    }
+
+    // Giả lập hoàn toàn: không đọc, không ghi dữ liệu nào.
+    form.addEventListener('submit', (suKien) => {
+      suKien.preventDefault();
+      const lienHe = form.elements['lien-he'].value;
+      if (lienHe.trim() === '') {
+        hienThongBao('loi', 'Vui lòng nhập email hoặc số điện thoại.');
+        form.elements['lien-he'].focus();
+        return;
+      }
+      hienThongBao('ok', 'Đã gửi hướng dẫn đặt lại mật khẩu (demo, không gửi email thật).');
+      form.reset();
+    });
+  </script>
+</body>
+</html>
