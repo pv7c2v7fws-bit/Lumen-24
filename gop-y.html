@@ -1,0 +1,169 @@
+<!doctype html>
+<!-- gop-y.html -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Góp ý – Lumen 24</title>
+  <meta name="description" content="Gửi đánh giá, góp ý hoặc khiếu nại cho Lumen 24. Form demo, không lưu dữ liệu.">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .pg-main { padding-bottom: 48px; }
+    .pg-head { padding: 40px 0 16px; }
+    .pg-head h1 { margin: 0 0 8px; font-size: clamp(1.75rem, 5vw, 2.5rem); line-height: 1.2; }
+    .pg-head p { margin: 0; max-width: 62ch; line-height: 1.6; }
+    .pg-sec { padding: 20px 0; max-width: 720px; }
+    .pg-small { font-size: .85rem; opacity: .75; }
+    .pg-card {
+      background: #fff; border: 1px solid rgba(31, 42, 68, .12); border-radius: 16px;
+      padding: 20px; box-shadow: 0 2px 10px rgba(31, 42, 68, .06);
+    }
+    .gy-form { display: grid; gap: 18px; }
+    .gy-truong { display: grid; gap: 6px; }
+    .gy-truong label, .gy-truong legend { font-weight: 600; }
+    .gy-truong select, .gy-truong textarea {
+      width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; color: inherit;
+      border: 1px solid rgba(31, 42, 68, .35); border-radius: 10px; background: #fff;
+    }
+    .gy-truong textarea { min-height: 140px; resize: vertical; }
+    .gy-truong fieldset { border: 0; margin: 0; padding: 0; }
+    .gy-chon { display: flex; align-items: flex-start; gap: 8px; font-weight: 400 !important; line-height: 1.5; }
+    .gy-chon input { margin-top: 4px; }
+
+    /* Chọn sao: DOM xếp 5 -> 1, đảo chiều bằng row-reverse để tô sáng các sao thấp hơn */
+    .gy-sao { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
+    .gy-sao input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .gy-sao label {
+      font-size: 2.2rem; line-height: 1; cursor: pointer; padding: 2px 4px;
+      color: rgba(31, 42, 68, .25); font-weight: 400;
+    }
+    .gy-sao input:checked ~ label,
+    .gy-sao label:hover,
+    .gy-sao label:hover ~ label { color: var(--mau-nhan, #f2b630); }
+    .gy-sao input:focus-visible + label { outline: 3px solid var(--mau-chu, #1f2a44); outline-offset: 2px; border-radius: 8px; }
+
+    .gy-ketqua {
+      padding: 14px 16px; border-radius: 12px; background: rgba(46, 160, 90, .15); line-height: 1.6;
+    }
+    .gy-ketqua strong { display: block; margin-bottom: 6px; }
+    .gy-ketqua ul { margin: 0; padding-left: 1.2em; }
+    .gy-ketqua li { overflow-wrap: anywhere; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <main class="pg-main">
+    <div class="container">
+      <header class="pg-head">
+        <h1>Góp ý và phản ánh</h1>
+        <p>Ý kiến của bạn giúp Lumen 24 tốt hơn. Bạn không cần đăng nhập để gửi góp ý.</p>
+      </header>
+
+      <section class="pg-sec" aria-labelledby="tieu-de-form">
+        <h2 id="tieu-de-form" style="margin:0 0 6px;font-size:1.25rem;">Gửi góp ý</h2>
+        <p class="pg-small" style="margin:0 0 14px;">Đây là form demo: dữ liệu không được lưu hay gửi đi đâu.</p>
+        <div class="pg-card">
+          <form id="form-gop-y" class="gy-form" novalidate>
+            <div class="gy-truong">
+              <fieldset>
+                <legend>Đánh giá của bạn</legend>
+                <div class="gy-sao" role="radiogroup" aria-label="Đánh giá từ 1 đến 5 sao">
+                  <input type="radio" id="gy-sao-5" name="sao" value="5" required>
+                  <label for="gy-sao-5" title="5 sao"><span aria-hidden="true">★</span><span class="sr-only" style="position:absolute;left:-9999px;">5 sao</span></label>
+                  <input type="radio" id="gy-sao-4" name="sao" value="4">
+                  <label for="gy-sao-4" title="4 sao"><span aria-hidden="true">★</span><span class="sr-only" style="position:absolute;left:-9999px;">4 sao</span></label>
+                  <input type="radio" id="gy-sao-3" name="sao" value="3">
+                  <label for="gy-sao-3" title="3 sao"><span aria-hidden="true">★</span><span class="sr-only" style="position:absolute;left:-9999px;">3 sao</span></label>
+                  <input type="radio" id="gy-sao-2" name="sao" value="2">
+                  <label for="gy-sao-2" title="2 sao"><span aria-hidden="true">★</span><span class="sr-only" style="position:absolute;left:-9999px;">2 sao</span></label>
+                  <input type="radio" id="gy-sao-1" name="sao" value="1">
+                  <label for="gy-sao-1" title="1 sao"><span aria-hidden="true">★</span><span class="sr-only" style="position:absolute;left:-9999px;">1 sao</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="gy-truong">
+              <label for="gy-chu-de">Chủ đề</label>
+              <select id="gy-chu-de" name="chuDe" required>
+                <option value="">Chọn chủ đề</option>
+                <option>Không gian và yên tĩnh</option>
+                <option>Dịch vụ</option>
+                <option>Giá</option>
+                <option>Phòng họp</option>
+                <option>Vệ sinh</option>
+                <option>An ninh</option>
+                <option>Khác</option>
+              </select>
+            </div>
+
+            <div class="gy-truong">
+              <label for="gy-noi-dung">Nội dung</label>
+              <textarea id="gy-noi-dung" name="noiDung" required></textarea>
+            </div>
+
+            <div class="gy-truong">
+              <label class="gy-chon" for="gy-khieu-nai">
+                <input type="checkbox" id="gy-khieu-nai" name="khieuNai">
+                <span>Đây là khiếu nại</span>
+              </label>
+              <label class="gy-chon" for="gy-an-danh">
+                <input type="checkbox" id="gy-an-danh" name="anDanh">
+                <span>Gửi ẩn danh</span>
+              </label>
+              <p class="pg-small" style="margin:0;">Đánh giá 1 hoặc 2 sao cũng được tính là khiếu nại.</p>
+            </div>
+
+            <div>
+              <button class="btn btn--primary" type="submit">Gửi góp ý</button>
+            </div>
+
+            <div id="gy-ket-qua" class="gy-ketqua" role="status" aria-live="polite" hidden></div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+
+    renderLayout();
+
+    const form = document.getElementById('form-gop-y');
+    const ketQua = document.getElementById('gy-ket-qua');
+
+    /** Tạo phần tử với văn bản an toàn (textContent). */
+    function tao(tag, text) {
+      const node = document.createElement(tag);
+      node.textContent = text;
+      return node;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+
+      const du = new FormData(form);
+      const sao = String(du.get('sao'));
+      const laKhieuNai = du.get('khieuNai') !== null || Number(sao) <= 2;
+      const anDanh = du.get('anDanh') !== null;
+
+      // Hiển thị lại những gì người dùng nhập, chỉ bằng textContent. Không lưu ở đâu cả.
+      const ds = document.createElement('ul');
+      ds.append(
+        tao('li', `Đánh giá: ${sao} sao`),
+        tao('li', `Chủ đề: ${String(du.get('chuDe'))}`),
+        tao('li', `Khiếu nại: ${laKhieuNai ? 'Có' : 'Không'}`),
+        tao('li', `Gửi ẩn danh: ${anDanh ? 'Có' : 'Không'}`),
+        tao('li', `Nội dung: ${String(du.get('noiDung'))}`)
+      );
+
+      ketQua.replaceChildren(tao('strong', 'Đã ghi nhận (demo, không lưu dữ liệu)'), ds);
+      ketQua.hidden = false;
+      form.reset();
+    });
+  </script>
+</body>
+</html>
