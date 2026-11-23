@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiểm thử quy tắc nghiệp vụ</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    /* Màu đạt / không đạt chỉ dùng riêng cho trang kiểm thử này. */
+    .kt { --kt-dat: #1b7f3b; --kt-dat-nen: #e6f4ea; --kt-loi: #b3261e; --kt-loi-nen: #fdeceb; padding-block: 24px 48px; }
+    .kt__mota { margin: 8px 0 16px; max-width: 70ch; }
+    .kt__tong-ket { padding: 14px 16px; border-radius: 12px; border: 1px solid #c9c9c9; background: #f4f4f4; font-weight: 600; margin-bottom: 12px; }
+    .kt__tong-ket--dat { background: var(--kt-dat-nen); border-color: var(--kt-dat); color: var(--kt-dat); }
+    .kt__tong-ket--loi { background: var(--kt-loi-nen); border-color: var(--kt-loi); color: var(--kt-loi); }
+    .kt__phu { font-weight: 400; margin-top: 6px; }
+    .kt__loc { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .kt__cuon { overflow-x: auto; }
+    .kt__bang { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .kt__bang th, .kt__bang td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid #ddd; }
+    .kt__bang th { position: sticky; top: 0; background: #fff; }
+    .kt__bang code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.82rem; overflow-wrap: anywhere; word-break: break-word; }
+    .kt__bang details { margin-top: 4px; }
+    .kt__bang summary { cursor: pointer; color: #555; }
+    .kt__ma { font-weight: 700; white-space: nowrap; }
+    .kt__ket-qua { font-weight: 700; white-space: nowrap; }
+    .kt__dong--dat .kt__ket-qua { color: var(--kt-dat); }
+    .kt__dong--loi { background: var(--kt-loi-nen); }
+    .kt__dong--loi .kt__ket-qua { color: var(--kt-loi); }
+    .kt__loi-chay { color: var(--kt-loi); font-weight: 600; margin-top: 4px; }
+    .kt__canh-bao { color: var(--kt-loi); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container kt">
+      <h1>Kiểm thử quy tắc nghiệp vụ</h1>
+      <p class="kt__mota">
+        Trang này chạy các ví dụ kiểm thử R01-R31 (mục 6 của đặc tả) từ <code>js/rules.js</code>
+        và so sánh kết quả thực tế với kết quả mong đợi bằng JSON. Mục tiêu: số dòng không đạt phải là 0.
+        Ví dụ có chữ "(bổ sung)" là ví dụ biên do bước này thêm vào.
+      </p>
+      <div id="kt-tong-ket" class="kt__tong-ket" role="status" aria-live="polite">Đang chạy kiểm thử…</div>
+      <label class="kt__loc">
+        <input type="checkbox" id="kt-chi-loi">
+        <span>Chỉ hiện các dòng không đạt</span>
+      </label>
+      <div class="kt__cuon">
+        <table class="kt__bang">
+          <thead>
+            <tr>
+              <th scope="col">Mã</th>
+              <th scope="col">Mô tả</th>
+              <th scope="col">Mong đợi</th>
+              <th scope="col">Thực tế</th>
+              <th scope="col">Kết quả</th>
+            </tr>
+          </thead>
+          <tbody id="kt-than-bang"></tbody>
+        </table>
+      </div>
+      <noscript><p class="kt__canh-bao">Trang này cần bật JavaScript để chạy kiểm thử.</p></noscript>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+
+    renderLayout();
+
+    const oTongKet = document.getElementById('kt-tong-ket');
+    const thanBang = document.getElementById('kt-than-bang');
+    const oChiLoi = document.getElementById('kt-chi-loi');
+
+    // ---------- Hàm hỗ trợ ----------
+
+    /** Tạo phần tử an toàn: chuỗi luôn thành văn bản (textContent), không bị hiểu là HTML. */
+    function tao(tag, lop, chu) {
+      const node = document.createElement(tag);
+      if (lop) node.className = lop;
+      if (chu !== undefined && chu !== null) node.textContent = chu;
+      return node;
+    }
+
+    /** Sắp khóa theo thứ tự chữ cái (đệ quy) để so sánh JSON không phụ thuộc thứ tự khóa. */
+    function chuanHoa(giaTri) {
+      if (Array.isArray(giaTri)) return giaTri.map(chuanHoa);
+      if (giaTri && typeof giaTri === 'object') {
+        const moi = {};
+        for (const khoa of Object.keys(giaTri).sort()) moi[khoa] = chuanHoa(giaTri[khoa]);
+        return moi;
+      }
+      return giaTri;
+    }
+
+    function sangJSON(giaTri) {
+      const chuoi = JSON.stringify(chuanHoa(giaTri));
+      return chuoi === undefined ? 'undefined' : chuoi;
+    }
+
+    function datTongKet(noiDung, loai, dongPhu) {
+      oTongKet.textContent = noiDung;
+      oTongKet.className = 'kt__tong-ket' + (loai ? ' kt__tong-ket--' + loai : '');
+      if (dongPhu) oTongKet.append(tao('div', 'kt__phu', dongPhu));
+    }
+
+    // ---------- Nạp js/rules.js và js/config.js ----------
+    // Nạp bằng import() trong try/catch để nếu file có lỗi cú pháp thì lỗi hiện ngay trên trang
+    // (bạn không cần mở bảng điều khiển của trình duyệt).
+
+    let rules;
+    let CAU_HINH;
+    let VI_DU_KIEM_THU;
+    try {
+      rules = await import('./js/rules.js');
+      CAU_HINH = await import('./js/config.js');
+      VI_DU_KIEM_THU = rules.VI_DU_KIEM_THU;
+      if (!Array.isArray(VI_DU_KIEM_THU)) throw new Error('js/rules.js chưa xuất mảng VI_DU_KIEM_THU.');
+    } catch (loi) {
+      datTongKet('Không nạp được js/rules.js hoặc js/config.js.', 'loi', String(loi && loi.message ? loi.message : loi));
+      throw loi;
+    }
+
+    // ---------- Chạy một ví dụ ----------
+
+    // Các hàm trong rules.js là hàm thuần nên nhận cauHinh qua tham số: trang này truyền
+    // thẳng các export của js/config.js.
+    function chayMotViDu(viDu) {
+      const ham = rules[viDu.ham];
+      if (typeof ham !== 'function') {
+        return { dat: false, thucTe: null, loiChay: 'Không tìm thấy hàm "' + viDu.ham + '" trong js/rules.js.' };
+      }
+      try {
+        const thucTe = ham({ ...viDu.dauVao, cauHinh: CAU_HINH });
+        return { dat: sangJSON(thucTe) === sangJSON(viDu.mongDoi), thucTe, loiChay: null };
+      } catch (loi) {
+        return { dat: false, thucTe: null, loiChay: 'Lỗi khi chạy: ' + (loi && loi.message ? loi.message : String(loi)) };
+      }
+    }
+
+    function taoOMa(chu) {
+      const o = tao('td');
+      o.append(tao('code', null, chu));
+      return o;
+    }
+
+    // ---------- Chạy tất cả và hiển thị ----------
+
+    let soDat = 0;
+    let soKhongDat = 0;
+    const maDaCo = new Set();
+    const cacDong = [];
+
+    for (const viDu of VI_DU_KIEM_THU) {
+      maDaCo.add(viDu.ma);
+      const ketQua = chayMotViDu(viDu);
+      if (ketQua.dat) soDat += 1; else soKhongDat += 1;
+
+      const dong = tao('tr', 'kt__dong ' + (ketQua.dat ? 'kt__dong--dat' : 'kt__dong--loi'));
+      dong.dataset.dat = ketQua.dat ? '1' : '0';
+
+      dong.append(tao('td', 'kt__ma', viDu.ma));
+
+      const oMoTa = tao('td');
+      oMoTa.append(tao('div', null, viDu.moTa));
+      const chiTiet = tao('details');
+      chiTiet.append(tao('summary', null, 'Hàm và đầu vào'));
+      chiTiet.append(tao('code', null, viDu.ham + '(' + JSON.stringify(viDu.dauVao) + ')'));
+      oMoTa.append(chiTiet);
+      dong.append(oMoTa);
+
+      dong.append(taoOMa(sangJSON(viDu.mongDoi)));
+
+      const oThucTe = taoOMa(ketQua.loiChay ? '(không có kết quả)' : sangJSON(ketQua.thucTe));
+      if (ketQua.loiChay) oThucTe.append(tao('div', 'kt__loi-chay', ketQua.loiChay));
+      dong.append(oThucTe);
+
+      dong.append(tao('td', 'kt__ket-qua', ketQua.dat ? 'Đạt' : 'Không đạt'));
+      cacDong.push(dong);
+    }
+
+    thanBang.replaceChildren(...cacDong);
+
+    // Mọi mã R01-R31 phải có ít nhất một ví dụ.
+    const maThieu = [];
+    for (let i = 1; i <= 31; i += 1) {
+      const ma = 'R' + String(i).padStart(2, '0');
+      if (!maDaCo.has(ma)) maThieu.push(ma);
+    }
+
+    const tong = soDat + soKhongDat;
+    const dongPhu = maThieu.length === 0
+      ? 'Đã có ví dụ cho đủ 31 quy tắc R01-R31.'
+      : 'Chưa có ví dụ cho: ' + maThieu.join(', ') + '.';
+    const tongKetChu = 'Tổng ' + tong + ' ví dụ · Đạt: ' + soDat + ' · Không đạt: ' + soKhongDat;
+    datTongKet(tongKetChu, soKhongDat === 0 && maThieu.length === 0 ? 'dat' : 'loi', dongPhu);
+
+    // ---------- Bộ lọc "chỉ hiện dòng không đạt" ----------
+
+    oChiLoi.addEventListener('change', () => {
+      for (const dong of cacDong) {
+        dong.hidden = oChiLoi.checked && dong.dataset.dat === '1';
+      }
+    });
+  </script>
+</body>
+</html>
