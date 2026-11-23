@@ -1,10 +1,15 @@
 // js/api.js
 // -----------------------------------------------------------------------------
-// Lớp truy cập dữ liệu của Lumen 24 (Bước 1c). Mọi trang đi qua file này để đọc và
-// ghi dữ liệu; sau này có thể thay bằng cơ sở dữ liệu thật mà không sửa giao diện.
+// Lớp truy cập dữ liệu của Lumen 24 (Bước 1c, cập nhật ở Bước 3a). Mọi trang đi qua file này
+// để đọc và ghi dữ liệu; sau này có thể thay bằng cơ sở dữ liệu thật mà không sửa giao diện.
 //
-// Hiện cung cấp: cấu hình (getConfig), tài khoản (getUsers, getUserById, saveUser)
+// Hiện cung cấp: cấu hình (getConfig), tài khoản (getUsers, getUserById, saveUser, deleteUser)
 // và trạng thái đăng nhập (login, logout, getCurrentUser).
+//
+// Thay đổi ở Bước 3a:
+//   - Mã khách (LM-000123) lấy từ BỘ ĐẾM lưu trong store (khóa lumen-code-counter), không còn
+//     là "số lớn nhất + 1" nữa. Bộ đếm chỉ tăng, nên mã của tài khoản đã xóa không bị cấp lại.
+//   - Thêm deleteUser(id).
 //
 // Độ trễ giả lập:
 //   - getConfig() và getCurrentUser() là hàm ĐỒNG BỘ, không trễ, vì chỉ đọc dữ liệu
@@ -23,22 +28,35 @@
 //     (đây là ngoại lệ duy nhất cho dữ liệu LƯU TRỮ), (2) độ trễ giả lập trong tre(),
 //     chỉ ảnh hưởng thời gian chờ chứ không ảnh hưởng dữ liệu.
 //
-// Mã khách (LM-000123) hiện lấy "số lớn nhất trong danh sách + 1". Ở Bước 3 sẽ đổi sang
-// bộ đếm lưu trong store, để mã không bị dùng lại khi xóa tài khoản.
-//
 // Khóa lumen-current-user chỉ lưu id của người đang đăng nhập (không lưu cả tài khoản),
 // nên getCurrentUser() luôn trả dữ liệu mới nhất của tài khoản đó.
 // -----------------------------------------------------------------------------
 
 import * as store from './store.js';
 import * as config from './config.js';
-import { taoNguoiDungSeed, KHOA_NGUOI_DUNG } from './seed.js';
+import {
+  taoNguoiDungSeed,
+  boDemMaSeed,
+  KHOA_NGUOI_DUNG,
+  KHOA_DANG_NHAP,
+  KHOA_BO_DEM_MA,
+} from './seed.js';
 import { now } from './clock.js';
 
 // ---------- Hằng số ----------
 
-/** Khóa trong store lưu id của người đang đăng nhập. Header có thể store.subscribe khóa này để cập nhật khi tab khác đăng nhập hoặc đăng xuất. */
-export const KHOA_DANG_NHAP = 'lumen-current-user';
+/**
+ * Khóa trong store lưu id của người đang đăng nhập. Header có thể store.subscribe khóa này
+ * để cập nhật khi tab khác đăng nhập hoặc đăng xuất. Định nghĩa ở seed.js, xuất lại ở đây
+ * để các trang đang import từ api.js vẫn chạy như cũ.
+ */
+export { KHOA_DANG_NHAP };
+
+/**
+ * Khóa trong store lưu bộ đếm mã khách (số nguyên: số thứ tự của mã đã cấp gần nhất).
+ * Định nghĩa ở seed.js (để resetDemoData xóa được), xuất lại ở đây.
+ */
+export { KHOA_BO_DEM_MA };
 
 const TRE_TOI_THIEU_MS = 200;
 const TRE_TOI_DA_MS = 500;
@@ -55,9 +73,13 @@ const KY_TU_NGAU_NHIEN = '0123456789abcdefghijklmnopqrstuvwxyz';
 const MAU_EMAIL = /^[^\s@]+@[^\s@]+$/;
 /** Số điện thoại Việt Nam: 10 chữ số, bắt đầu bằng 0. */
 const MAU_SDT = /^0\d{9}$/;
+/** Mã khách: LM- và các chữ số. */
+const MAU_MA_KHACH = /^LM-(\d+)$/;
 
 const LOI_SAI_TAI_KHOAN = 'Email hoặc số điện thoại không đúng. Vui lòng kiểm tra lại.';
 const LOI_SAI_MAT_KHAU = 'Mật khẩu không đúng. Vui lòng thử lại.';
+const LOI_KHONG_TIM_THAY_DE_XOA = 'Không tìm thấy tài khoản cần xóa. Có thể tài khoản đã bị xóa trước đó.';
+const LOI_XOA_QUAN_LY_CUOI = 'Không thể xóa tài khoản quản lý cuối cùng. Hãy chuyển một tài khoản khác thành quản lý trước.';
 
 // ---------- Hàm hỗ trợ nội bộ ----------
 
@@ -123,14 +145,46 @@ function taoIdMoi(danhSach) {
   return id;
 }
 
-/** Mã khách mới: LM- + (số lớn nhất trong các mã hiện có + 1), đủ 6 chữ số. */
-function taoMaKhachMoi(danhSach) {
+/** Số thứ tự lớn nhất trong các mã LM-xxxxxx của danh sách (0 nếu không có mã nào). */
+function soMaLonNhat(danhSach) {
   let lonNhat = 0;
   for (const nguoi of danhSach) {
-    const khop = /^LM-(\d+)$/.exec(String(nguoi.code || ''));
+    const khop = MAU_MA_KHACH.exec(String(nguoi.code || ''));
     if (khop) lonNhat = Math.max(lonNhat, Number(khop[1]));
   }
-  return 'LM-' + String(lonNhat + 1).padStart(6, '0');
+  return lonNhat;
+}
+
+/**
+ * Đọc bộ đếm mã khách trong store (G-code). Nếu khóa chưa có hoặc không phải số nguyên không âm
+ * thì tạo lại: lấy số lớn hơn giữa giá trị seed (7) và mã lớn nhất đang có trong danh sách.
+ * Với dữ liệu seed sạch thì kết quả đúng bằng 7. Việc so thêm với mã lớn nhất chỉ để không cấp
+ * trùng mã nếu trình duyệt đang có tài khoản tạo từ trước khi có bộ đếm.
+ */
+function docBoDemMa(danhSach) {
+  const giaTri = store.get(KHOA_BO_DEM_MA);
+  if (Number.isInteger(giaTri) && giaTri >= 0) return giaTri;
+  const khoiTao = Math.max(boDemMaSeed(), soMaLonNhat(danhSach));
+  store.set(KHOA_BO_DEM_MA, khoiTao);
+  return khoiTao;
+}
+
+/**
+ * Cấp mã khách mới: tăng bộ đếm lên 1, lưu lại bộ đếm rồi trả mã dạng LM- + 6 chữ số.
+ * Nếu mã vừa tạo lỡ trùng với một mã đang có (dữ liệu bị sửa tay) thì tăng tiếp đến khi không trùng.
+ * Bộ đếm không bao giờ giảm, kể cả khi xóa tài khoản, nên mã đã dùng không bị cấp lại.
+ * Hàm đồng bộ; được gọi trong khối đồng bộ của saveUser sau khi đã chờ độ trễ.
+ */
+function capMaKhachMoi(danhSach) {
+  const daCo = new Set(danhSach.map((nguoi) => String(nguoi.code || '')));
+  let so = docBoDemMa(danhSach);
+  let ma;
+  do {
+    so += 1;
+    ma = 'LM-' + String(so).padStart(6, '0');
+  } while (daCo.has(ma));
+  store.set(KHOA_BO_DEM_MA, so);
+  return ma;
 }
 
 /**
@@ -205,8 +259,9 @@ function kiemTraTaiKhoan(ban, danhSach) {
 }
 
 // ---------- Nạp dữ liệu tài khoản ngay khi file được tải ----------
-// Để getCurrentUser() (đồng bộ) luôn có danh sách tài khoản để tra.
-docNguoiDung();
+// Để getCurrentUser() (đồng bộ) luôn có danh sách tài khoản để tra, và để khóa bộ đếm mã
+// khách có sẵn trong store (tạo từ seed nếu chưa có).
+docBoDemMa(docNguoiDung());
 
 // ---------- Cấu hình ----------
 
@@ -242,9 +297,10 @@ export async function getUserById(id) {
  * Có id: tìm tài khoản cũ; không thấy thì báo lỗi, KHÔNG tự tạo mới. Gộp các trường gửi lên
  *   vào tài khoản cũ (trường undefined bị bỏ qua). id, code, createdAt không đổi được
  *   (nếu gửi lên thì bị bỏ qua, không báo lỗi).
- * Không có id: tạo mới, role mặc định 'guest', sinh id và code (xem ghi chú đầu file),
- *   totalHours = 0, createdAt = giờ mô phỏng. Chỉ nhận các trường: name, contact, phone,
- *   passwordDemo, role, type, org, clubId, hideOnBoard.
+ * Không có id: tạo mới, role mặc định 'guest', sinh id (xem ghi chú đầu file) và code lấy từ
+ *   bộ đếm trong store (G-code), totalHours = 0, createdAt = giờ mô phỏng. Chỉ nhận các trường:
+ *   name, contact, phone, passwordDemo, role, type, org, clubId, hideOnBoard.
+ *   Bộ đếm chỉ tăng khi tài khoản qua được bước kiểm tra (tạo thất bại thì không mất số).
  * Quy tắc contact, phone, trùng lặp: xem kiemTraTaiKhoan ở trên.
  * Hàm này KHÔNG tự đăng nhập tài khoản mới.
  */
@@ -289,12 +345,48 @@ export async function saveUser(duLieu) {
   };
   kiemTraTaiKhoan(ban, danhSach);
   ban.id = taoIdMoi(danhSach);
-  ban.code = taoMaKhachMoi(danhSach);
+  ban.code = capMaKhachMoi(danhSach);
   ban.createdAt = now().toISOString();
 
   danhSach.push(ban);
   store.set(KHOA_NGUOI_DUNG, danhSach);
   return saoSau(ban);
+}
+
+/**
+ * [MỚI - Bước 3a] Xóa tài khoản theo id. Trả về true nếu xóa được. Trễ 200-500 ms.
+ *   - Không tìm thấy id: ném lỗi tiếng Việt "Không tìm thấy tài khoản cần xóa...".
+ *   - Tài khoản quản lý duy nhất còn lại: ném lỗi "Không thể xóa tài khoản quản lý cuối cùng...".
+ *   - Nếu tài khoản bị xóa đang đăng nhập thì tự đăng xuất (xóa khóa lumen-current-user;
+ *     các tab khác thấy ngay).
+ * Bộ đếm mã khách không bị giảm, nên mã của tài khoản đã xóa không bị cấp lại.
+ * Chỉ xóa bản ghi trong danh sách tài khoản; dữ liệu của các module khác (phiên ngồi, đặt phòng...)
+ * chưa tồn tại ở bước này, sẽ xử lý khi các module đó được làm.
+ */
+export async function deleteUser(id) {
+  await tre();
+  const danhSach = docNguoiDung();
+  const viTri = typeof id === 'string' && id !== '' ? danhSach.findIndex((u) => u.id === id) : -1;
+  if (viTri === -1) {
+    throw new Error(LOI_KHONG_TIM_THAY_DE_XOA);
+  }
+
+  const nguoi = danhSach[viTri];
+  if (nguoi.role === 'manager') {
+    const soQuanLy = danhSach.filter((u) => u.role === 'manager').length;
+    if (soQuanLy <= 1) {
+      throw new Error(LOI_XOA_QUAN_LY_CUOI);
+    }
+  }
+
+  danhSach.splice(viTri, 1);
+  store.set(KHOA_NGUOI_DUNG, danhSach);
+
+  // Đang đăng nhập bằng chính tài khoản này thì đăng xuất.
+  if (store.get(KHOA_DANG_NHAP) === nguoi.id) {
+    store.remove(KHOA_DANG_NHAP);
+  }
+  return true;
 }
 
 // ---------- Đăng nhập ----------
