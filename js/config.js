@@ -199,10 +199,10 @@ export const IN_AN = dongBang({
 /** [MĐ] Văn phòng phẩm mẫu (mục 4.5). Cộng vào đơn theo giá niêm yết, không giảm giá (R28). */
 export const VAN_PHONG_PHAM = dongBang([
   { id: 'vp1', name: 'Bút bi',            price: 5000 },
-  { id: 'vp2', name: 'Kẹp giấy',          price: 5000 },
+  { id: 'vp2', name: 'Kẹp giấy',          price: 7000 },
   { id: 'vp3', name: 'Giấy note',         price: 10000 },
   { id: 'vp4', name: 'File đựng tài liệu', price: 12000 },
-  { id: 'vp5', name: 'Pin',               price: 20000 },
+  { id: 'vp5', name: 'Pin',               price: 5000 },
 ]);
 
 // =============================================================================
