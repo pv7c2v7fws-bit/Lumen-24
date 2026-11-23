@@ -1,1 +1,196 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chính sách hoàn cọc – Lumen 24</title>
+  <meta name="description" content="Chính sách hủy phòng và hoàn cọc của Lumen 24 (hệ thống mô phỏng cho bài tập).">
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .policy { max-width: 820px; margin: 0 auto; padding: 24px 0 56px; }
+    .policy h1 { margin: 0 0 12px; }
+    .policy h2 { margin: 32px 0 10px; scroll-margin-top: 120px; }
+    .policy p, .policy li { line-height: 1.65; }
+    .policy-switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding: 0; list-style: none; }
+    .policy-switch a { display: inline-block; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(0, 0, 0, 0.18); text-decoration: none; color: inherit; }
+    .policy-switch a[aria-current="page"] { background: var(--mau-nhan, #f5b83d); border-color: transparent; font-weight: 600; }
+    .policy-note { margin: 16px 0; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.12); background: rgba(245, 184, 61, 0.16); }
+    .policy-summary { margin: 16px 0; padding: 16px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.12); background: rgba(0, 0, 0, 0.03); }
+    .policy-summary ul { margin: 8px 0 0; padding-left: 20px; }
+    .policy-toc { margin: 16px 0 8px; padding: 14px 16px 14px 36px; border-radius: 12px; background: rgba(0, 0, 0, 0.04); }
+    .policy-toc a { color: inherit; }
+    .policy-table-wrap { overflow-x: auto; margin: 12px 0; }
+    .policy-table { border-collapse: collapse; width: 100%; min-width: 440px; }
+    .policy-table th, .policy-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(0, 0, 0, 0.12); vertical-align: top; }
+    .policy-table th { font-weight: 600; }
+    .policy-table td.num { white-space: nowrap; text-align: right; }
+    .policy-status { color: inherit; opacity: 0.75; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container policy">
+      <nav aria-label="Các trang chính sách">
+        <ul class="policy-switch">
+          <li><a href="./dieu-khoan.html">Điều khoản</a></li>
+          <li><a href="./chinh-sach-hoan-coc.html" aria-current="page">Chính sách hoàn cọc</a></li>
+          <li><a href="./chinh-sach-bao-mat.html">Chính sách bảo mật</a></li>
+        </ul>
+      </nav>
 
+      <h1>Chính sách hoàn cọc</h1>
+      <p class="policy-note"><strong>Hệ thống mô phỏng cho bài tập, không hoàn tiền thật.</strong> Việc hoàn cọc chỉ là một giao dịch giả được ghi lại trong hệ thống.</p>
+
+      <noscript><p class="policy-note">Trang này cần JavaScript để hiển thị số giờ, số phút và số tiền lấy từ cấu hình.</p></noscript>
+
+      <section class="policy-summary" aria-labelledby="tom-tat">
+        <strong id="tom-tat">Tóm tắt</strong>
+        <ul>
+          <li>Hủy trước giờ bắt đầu từ <span data-cfg="hanHoanCocGio">…</span> giờ trở lên: <strong>hoàn 100% cọc</strong>.</li>
+          <li>Hủy muộn hơn: <strong>mất cọc</strong>.</li>
+          <li>Không đến sau <span data-cfg="choKhongDenPhut">…</span> phút kể từ giờ bắt đầu: đánh dấu “Không đến”, <strong>mất cọc</strong>.</li>
+          <li>Cọc bằng giá thuê <span data-cfg="cocPhongSoGio">…</span> giờ của phòng và được trừ vào tổng tiền khi sử dụng.</li>
+        </ul>
+      </section>
+
+      <ol class="policy-toc" aria-label="Mục lục">
+        <li><a href="#tien-coc">Tiền cọc</a></li>
+        <li><a href="#huy-phong">Hủy phòng</a></li>
+        <li><a href="#khong-den">Không đến</a></li>
+        <li><a href="#vi-du">Ví dụ minh họa</a></li>
+        <li><a href="#hoan-nhu-the-nao">Việc hoàn cọc được ghi nhận thế nào</a></li>
+      </ol>
+
+      <section aria-labelledby="tien-coc">
+        <h2 id="tien-coc">1. Tiền cọc</h2>
+        <p>Đặt phòng không cần quản lý duyệt nhưng bắt buộc đặt cọc. Tiền cọc bằng giá chuẩn của phòng cho <span data-cfg="cocPhongSoGio">…</span> giờ (không áp dụng giảm giá). Khi sử dụng phòng, số tiền còn phải trả bằng tổng tiền trừ đi cọc. Đặt phòng chỉ thành công khi cọc đã được thanh toán.</p>
+        <div class="policy-table-wrap">
+          <table class="policy-table">
+            <caption class="policy-status">Tiền cọc từng phòng, đọc từ cấu hình</caption>
+            <thead>
+              <tr><th scope="col">Phòng</th><th scope="col">Giá chuẩn mỗi giờ</th><th scope="col">Tiền cọc</th></tr>
+            </thead>
+            <tbody id="bang-coc">
+              <tr><td colspan="3" class="policy-status">Đang tải…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="huy-phong">
+        <h2 id="huy-phong">2. Hủy phòng</h2>
+        <ul>
+          <li><strong>Hoàn cọc:</strong> hủy trước giờ bắt đầu từ <span data-cfg="hanHoanCocGio">…</span> giờ trở lên (tính cả mốc đúng <span data-cfg="hanHoanCocGio">…</span> giờ 00 phút). Hoàn 100% tiền cọc.</li>
+          <li><strong>Mất cọc:</strong> hủy khi còn ít hơn <span data-cfg="hanHoanCocGio">…</span> giờ.</li>
+        </ul>
+        <p>Trước khi xác nhận hủy, hệ thống hiển thị rõ bạn sẽ được hoàn hay mất cọc. Quy tắc được áp dụng tự động.</p>
+      </section>
+
+      <section aria-labelledby="khong-den">
+        <h2 id="khong-den">3. Không đến</h2>
+        <p>Nếu quá <span data-cfg="choKhongDenPhut">…</span> phút sau giờ bắt đầu mà bạn chưa check-in phòng, đặt phòng được đánh dấu “Không đến” và bạn mất cọc. Trong trường hợp đặc biệt, nhân viên có thể bỏ qua việc đánh dấu này.</p>
+      </section>
+
+      <section aria-labelledby="vi-du">
+        <h2 id="vi-du">4. Ví dụ minh họa</h2>
+        <p>Giả sử bạn đặt phòng bắt đầu lúc 14h00:</p>
+        <ul id="vi-du-ds">
+          <li class="policy-status">Đang tải…</li>
+        </ul>
+        <p id="vi-du-tien" class="policy-status"></p>
+      </section>
+
+      <section aria-labelledby="hoan-nhu-the-nao">
+        <h2 id="hoan-nhu-the-nao">5. Việc hoàn cọc được ghi nhận thế nào</h2>
+        <p>Trong hệ thống mô phỏng này, hoàn cọc chỉ là việc ghi thêm một giao dịch “Hoàn cọc” vào lịch sử giao dịch của bạn; trạng thái tiền cọc chuyển thành “Đã hoàn”. Trường hợp mất cọc được ghi là “Mất cọc”. Không có tiền thật nào được chuyển. Xem thêm <a href="./dieu-khoan.html#huy-hoan-coc">Điều khoản</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { renderLayout } from './js/ui.js';
+    import { getConfig } from './js/api.js';
+
+    renderLayout();
+
+    const dinhDangTien = (so) => Number(so).toLocaleString('vi-VN') + 'đ';
+    const hai = (n) => String(n).padStart(2, '0');
+    // Đổi số phút trong ngày thành dạng "12h01"
+    const gioPhut = (soPhut) => {
+      const p = ((soPhut % 1440) + 1440) % 1440;
+      return Math.floor(p / 60) + 'h' + hai(p % 60);
+    };
+
+    function tao(tag, text, cls) {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      if (cls) node.className = cls;
+      return node;
+    }
+
+    try {
+      const cfg = getConfig();
+      const quyTac = cfg.QUY_TAC;
+      const han = quyTac.hanHoanCocGio;
+      const cho = quyTac.choKhongDenPhut;
+      const cocGio = quyTac.cocPhongSoGio;
+
+      const giaTri = { hanHoanCocGio: han, choKhongDenPhut: cho, cocPhongSoGio: cocGio };
+      document.querySelectorAll('[data-cfg]').forEach((node) => {
+        const khoa = node.getAttribute('data-cfg');
+        if (khoa in giaTri) node.textContent = String(giaTri[khoa]);
+      });
+
+      // Bảng tiền cọc theo phòng
+      const tbody = document.getElementById('bang-coc');
+      tbody.replaceChildren();
+      const phongHoatDong = cfg.PHONG_HOP.filter((p) => p.active);
+      for (const phong of phongHoatDong) {
+        const hang = tao('tr');
+        hang.append(
+          tao('td', phong.name + ' (tầng ' + phong.floor + ')'),
+          tao('td', dinhDangTien(phong.pricePerHour), 'num'),
+          tao('td', dinhDangTien(phong.pricePerHour * cocGio), 'num')
+        );
+        tbody.append(hang);
+      }
+
+      // Ví dụ về mốc giờ, bắt đầu lúc 14h00 = 840 phút
+      const batDau = 14 * 60;
+      const mocHoan = batDau - han * 60;
+      const ds = document.getElementById('vi-du-ds');
+      ds.replaceChildren();
+      ds.append(
+        tao('li', 'Hủy lúc ' + gioPhut(mocHoan) + ' (còn đúng ' + han + ' giờ 00 phút): được hoàn cọc.'),
+        tao('li', 'Hủy lúc ' + gioPhut(mocHoan + 1) + ' (còn ' + (han - 1) + ' giờ 59 phút): mất cọc.'),
+        tao('li', 'Đến ' + gioPhut(batDau + cho) + ' vẫn chưa check-in phòng thì vẫn còn trong thời gian chờ; quá mốc này, ví dụ đến ' +
+          gioPhut(batDau + cho + 1) + ' mà chưa vào, đặt phòng bị đánh dấu “Không đến” và mất cọc.')
+      );
+
+      // Ví dụ tiền, lấy phòng lớn nhất đang hoạt động (giá chuẩn, chưa tính giảm giá)
+      const phongMau = phongHoatDong.find((p) => p.id === 'r1520') || phongHoatDong[phongHoatDong.length - 1];
+      const dongTien = document.getElementById('vi-du-tien');
+      if (phongMau) {
+        const tong = phongMau.pricePerHour * 2;
+        const coc = phongMau.pricePerHour * cocGio;
+        dongTien.textContent = 'Ví dụ về tiền: ' + phongMau.name + ' thuê 2 giờ theo giá chuẩn là ' + dinhDangTien(tong) +
+          ', cọc ' + dinhDangTien(coc) + ', còn phải trả khi sử dụng ' + dinhDangTien(tong - coc) + '. (Chưa tính giảm giá.)';
+      } else {
+        dongTien.textContent = '';
+      }
+    } catch (loi) {
+      const tbody = document.getElementById('bang-coc');
+      tbody.replaceChildren();
+      const hang = tao('tr');
+      const o = tao('td', 'Không tải được cấu hình. Vui lòng tải lại trang.');
+      o.colSpan = 3;
+      hang.append(o);
+      tbody.append(hang);
+      const ds = document.getElementById('vi-du-ds');
+      ds.replaceChildren(tao('li', 'Không tải được cấu hình. Vui lòng tải lại trang.'));
+    }
+  </script>
+</body>
+</html>
