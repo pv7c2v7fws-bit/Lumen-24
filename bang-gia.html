@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Bảng giá | Lumen 24</title>
-  <meta name="description" content="Bảng giá gói chỗ ngồi, menu, in ấn và văn phòng phẩm tại Lumen 24. Giá minh bạch, nước lọc miễn phí.">
+  <meta name="description" content="Bảng giá gói chỗ ngồi, menu, in ấn và văn phòng phẩm tại Lumen 24. Giá minh bạch.">
   <link rel="icon" href="./favicon.ico">
   <link rel="stylesheet" href="./css/tokens.css">
   <link rel="stylesheet" href="./css/style.css">
@@ -60,25 +60,14 @@
     .gia-kem--trong li::before { content: "–"; color: var(--g-chu-phu); }
     .gia-kem__tieude { margin: .5rem 0 0; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--g-chu-phu); }
 
-    .gia-ghichu {
-      margin-top: 1rem; padding: .85rem 1.1rem; border-radius: 12px;
-      background: rgba(242, 182, 50, .16); border: 1px solid rgba(242, 182, 50, .45); font-size: .95rem;
-    }
-
-    /* Khối so sánh Combo Trọn Ngày */
-    .gia-sosanh { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-    @media (min-width: 640px) { .gia-sosanh { grid-template-columns: 1fr 1fr; } }
-    .gia-sosanh__cot { padding: 1.25rem; border-radius: var(--ban-kinh, 16px); background: var(--g-the); border: 1px solid var(--g-vien); }
-    .gia-sosanh__cot--combo { border-color: var(--g-nhan); background: rgba(242, 182, 50, .14); }
-    .gia-sosanh__cot h3 { margin: 0 0 .5rem; font-size: 1rem; color: var(--g-chu-phu); }
-    .gia-sosanh__so { margin: 0; font-size: clamp(1.5rem, 5vw, 2rem); font-weight: 700; line-height: 1.15; }
-    .gia-sosanh__ct { margin: .5rem 0 0; font-size: .92rem; color: var(--g-chu-phu); }
-    .gia-tietkiem { margin: 1rem 0 0; font-size: 1.05rem; font-weight: 600; }
-
-    /* Khối ảnh giữ chỗ */
+    /* Khung ảnh: thử nạp ảnh thật; nếu chưa có file thì hiện khối giữ chỗ (class is-placeholder). */
     .gia-anh {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem;
-      min-height: 140px; border-radius: 12px; text-align: center;
+      aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; text-align: center;
+      background: #f3ead6;
+    }
+    .gia-anh img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .gia-anh.is-placeholder {
       background: linear-gradient(135deg, #fdebb8 0%, #f7d17a 55%, #e9b44c 100%);
       color: rgba(31, 45, 61, .75);
     }
@@ -109,10 +98,9 @@
   <main class="gia-page">
     <div class="container gia-hero">
       <h1>Bảng giá</h1>
-      <p>Giá minh bạch, tính rõ từng gói. Chọn gói vừa với buổi học của bạn; đồ uống mua riêng, riêng nước lọc luôn miễn phí.</p>
+      <p>Giá minh bạch, tính rõ từng gói. Chọn gói vừa với buổi học của bạn; đồ uống mua riêng.</p>
       <ul class="gia-chips" aria-label="Đi nhanh tới mục">
         <li><a href="#goi-cho-ngoi">Gói chỗ ngồi</a></li>
-        <li><a href="#so-sanh">So sánh Combo Trọn Ngày</a></li>
         <li><a href="#menu">Menu</a></li>
         <li><a href="#in-an">In ấn và văn phòng phẩm</a></li>
       </ul>
@@ -125,16 +113,6 @@
         <div class="gia-luoi" id="luoi-goi" aria-live="polite">
           <p class="gia-trangthai">Đang tải bảng giá…</p>
         </div>
-        <p class="gia-ghichu" id="ghi-chu-nuoc"></p>
-      </div>
-    </section>
-
-    <section class="gia-section" id="so-sanh" aria-labelledby="tieu-de-so-sanh" hidden>
-      <div class="container">
-        <h2 id="tieu-de-so-sanh">Vì sao nên chọn Combo Trọn Ngày?</h2>
-        <p class="gia-mota">So sánh với việc mua gói 9 giờ rồi gọi thêm một đồ uống.</p>
-        <div class="gia-sosanh" id="khoi-so-sanh"></div>
-        <p class="gia-tietkiem" id="dong-tiet-kiem"></p>
       </div>
     </section>
 
@@ -169,6 +147,14 @@
 
     renderLayout();
 
+    // ---------- Đường dẫn ảnh thật ----------
+    // Bạn tải ảnh lên thư mục images/ với ĐÚNG các tên dưới đây là ảnh tự hiện.
+    // Chưa có file thì trang tự dùng khối "Ảnh minh họa".
+    const ANH_MENU = {
+      drink: './images/menu-do-uong.jpg',
+      snack: './images/menu-an-nhe.jpg',
+    };
+
     // ---------- Hàm hỗ trợ ----------
 
     /** Tạo phần tử DOM an toàn: chuỗi luôn thành văn bản, không bị hiểu là HTML. */
@@ -192,17 +178,25 @@
       return String(Math.round(so)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
     }
 
-    /** Khoảng tiền: "114.000đ-130.000đ"; nếu hai đầu bằng nhau thì chỉ hiện một số. */
-    function khoangTien(thap, cao) {
-      return thap === cao ? tien(thap) : tien(thap) + '-' + tien(cao);
-    }
-
-    /** Khối ảnh giữ chỗ (nền gradient, chú thích "Ảnh minh họa"). */
-    function khoiAnh(bieuTuong, moTa) {
-      return el('div', { class: 'gia-anh', role: 'img', 'aria-label': 'Ảnh minh họa: ' + moTa }, [
-        el('span', { class: 'gia-anh__bieutuong', 'aria-hidden': 'true', text: bieuTuong }),
-        el('span', { class: 'gia-anh__chuthich', text: 'Ảnh minh họa' }),
-      ]);
+    /**
+     * Khung ảnh: thử nạp ảnh thật từ duongDan; nếu file chưa có hoặc lỗi thì
+     * đổi sang khối giữ chỗ (nền gradient, chú thích "Ảnh minh họa").
+     */
+    function khoiAnh(duongDan, bieuTuong, moTa) {
+      const khung = el('div', { class: 'gia-anh' });
+      const hienGiuCho = () => {
+        khung.classList.add('is-placeholder');
+        khung.setAttribute('role', 'img');
+        khung.setAttribute('aria-label', 'Ảnh minh họa: ' + moTa);
+        khung.replaceChildren(
+          el('span', { class: 'gia-anh__bieutuong', 'aria-hidden': 'true', text: bieuTuong }),
+          el('span', { class: 'gia-anh__chuthich', text: 'Ảnh minh họa' })
+        );
+      };
+      const anh = el('img', { src: duongDan, alt: moTa, loading: 'lazy' });
+      anh.addEventListener('error', hienGiuCho, { once: true });
+      khung.append(anh);
+      return khung;
     }
 
     function thongBaoLoi(vung, noiDung) {
@@ -249,55 +243,9 @@
       }
     }
 
-    // ---------- Khối so sánh Combo Trọn Ngày ----------
-
-    function veSoSanh(cfg, danhSachGoi) {
-      const phan = document.getElementById('so-sanh');
-      const goi9 = danhSachGoi.find((g) => g.id === 'h9');
-      const goiNgay = danhSachGoi.find((g) => g.id === 'day');
-      const giaDoUong = cfg.MENU_DO_UONG.map((m) => m.price);
-      if (!goi9 || !goiNgay || giaDoUong.length === 0) {
-        phan.hidden = true; // thiếu dữ liệu thì không hiện khối so sánh
-        return;
-      }
-      const doUongThap = Math.min(...giaDoUong);
-      const doUongCao = Math.max(...giaDoUong);
-      const tongThap = goi9.price + doUongThap;
-      const tongCao = goi9.price + doUongCao;
-      const tietKiemThap = tongThap - goiNgay.price;
-      const tietKiemCao = tongCao - goiNgay.price;
-
-      const khoi = document.getElementById('khoi-so-sanh');
-      khoi.replaceChildren(
-        el('div', { class: 'gia-sosanh__cot' }, [
-          el('h3', { text: goi9.name + ' + 1 đồ uống' }),
-          el('p', { class: 'gia-sosanh__so', text: khoangTien(tongThap, tongCao) }),
-          el('p', {
-            class: 'gia-sosanh__ct',
-            text: goi9.name + ' (' + tien(goi9.price) + ') cộng một đồ uống trong menu (' + khoangTien(doUongThap, doUongCao) + ').',
-          }),
-        ]),
-        el('div', { class: 'gia-sosanh__cot gia-sosanh__cot--combo' }, [
-          el('h3', { text: goiNgay.name }),
-          el('p', { class: 'gia-sosanh__so', text: tien(goiNgay.price) }),
-          el('p', { class: 'gia-sosanh__ct', text: 'Đã gồm: ' + goiNgay.perks.join('; ') + '.' }),
-        ])
-      );
-
-      const dong = document.getElementById('dong-tiet-kiem');
-      if (tietKiemThap > 0) {
-        dong.textContent = goiNgay.name + ' = ' + tien(goiNgay.price) + ', tiết kiệm ' + khoangTien(tietKiemThap, tietKiemCao) + '.';
-      } else if (tietKiemCao > 0) {
-        dong.textContent = goiNgay.name + ' = ' + tien(goiNgay.price) + ', tiết kiệm tối đa ' + tien(tietKiemCao) + ' tùy đồ uống bạn chọn.';
-      } else {
-        dong.textContent = goiNgay.name + ' = ' + tien(goiNgay.price) + '.';
-      }
-      phan.hidden = false;
-    }
-
     // ---------- Menu ----------
 
-    function theMenu(tieuDe, bieuTuong, moTaAnh, danhSachMon, dongThem) {
+    function theMenu(tieuDe, duongDanAnh, bieuTuong, moTaAnh, danhSachMon, dongThem) {
       const ds = el('ul', { class: 'gia-dong' });
       for (const mon of danhSachMon) {
         ds.append(el('li', { class: mon.soldOut ? 'is-het' : null }, [
@@ -310,7 +258,7 @@
       }
       if (dongThem) ds.append(dongThem);
       return el('article', { class: 'gia-the' }, [
-        khoiAnh(bieuTuong, moTaAnh),
+        khoiAnh(duongDanAnh, bieuTuong, moTaAnh),
         el('h3', { class: 'gia-the__tieude', text: tieuDe }),
         ds,
       ]);
@@ -323,8 +271,8 @@
         el('span', { class: 'gia-dong__gia', text: 'Miễn phí' }),
       ]);
       luoi.replaceChildren(
-        theMenu('Đồ uống', '☕', 'các món đồ uống', cfg.MENU_DO_UONG, dongNuocLoc),
-        theMenu('Ăn nhẹ', '🥪', 'các món ăn nhẹ', cfg.MENU_AN_NHE, null)
+        theMenu('Đồ uống', ANH_MENU.drink, '☕', 'các món đồ uống', cfg.MENU_DO_UONG, dongNuocLoc),
+        theMenu('Ăn nhẹ', ANH_MENU.snack, '🥪', 'các món ăn nhẹ', cfg.MENU_AN_NHE, null)
       );
     }
 
@@ -390,12 +338,8 @@
 
       const danhSachGoi = cfg.GOI_CHO_NGOI.filter((g) => g.active);
       veGoi(cfg, danhSachGoi);
-      veSoSanh(cfg, danhSachGoi);
       veMenu(cfg);
       veInAn(cfg, danhSachGoi);
-
-      document.getElementById('ghi-chu-nuoc').textContent =
-        cfg.NUOC_LOC.name + ' miễn phí cho mọi khách, kể cả khi bạn chỉ mua gói 1 giờ.';
     }
 
     khoiChay();
