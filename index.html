@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#14213d">
 
   <link rel="icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./android-chrome-512x512.png">
 
   <!-- Font Be Vietnam Pro (có font dự phòng trong css/tokens.css) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,13 +18,159 @@
 
   <link rel="stylesheet" href="./css/tokens.css">
   <link rel="stylesheet" href="./css/style.css">
+
+  <style>
+    /* Các lớp lm-* chỉ dùng riêng cho trang chủ. Màu lấy từ tokens.css nếu có, không thì dùng giá trị dự phòng. */
+    :root {
+      --lm-chu: var(--mau-chu, #14213d);
+      --lm-nhan: var(--mau-nhan, #f4b942);
+      --lm-vien: rgba(20, 33, 61, 0.12);
+      --lm-vang: #2e9e6b;
+      --lm-vua: #e0b100;
+      --lm-dong: #e8832a;
+      --lm-gankin: #d0392f;
+    }
+
+    .lm-section { padding: 48px 0; }
+    .lm-section--alt { background: rgba(20, 33, 61, 0.04); }
+    .lm-head { margin: 0 0 24px; max-width: 640px; }
+    .lm-head h2 { margin: 0 0 8px; font-size: 1.6rem; line-height: 1.25; }
+    .lm-head p { margin: 0; opacity: 0.85; }
+
+    .lm-card {
+      background: #fff;
+      border: 1px solid var(--lm-vien);
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(20, 33, 61, 0.08);
+      padding: 20px;
+    }
+
+    /* ----- Số liệu nổi bật ----- */
+    .lm-stats {
+      list-style: none; margin: 0; padding: 0;
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    }
+    .lm-stat { text-align: center; padding: 18px 12px; }
+    .lm-stat__value { display: block; font-size: 2rem; font-weight: 700; line-height: 1.1; }
+    .lm-stat__label { display: block; margin-top: 6px; font-size: 0.9rem; opacity: 0.85; }
+
+    /* ----- Điểm mạnh ----- */
+    .lm-grid-6 {
+      list-style: none; margin: 0; padding: 0;
+      display: grid; grid-template-columns: 1fr; gap: 16px;
+    }
+    .lm-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--lm-nhan); color: var(--lm-chu); margin-bottom: 12px;
+    }
+    .lm-icon svg { width: 24px; height: 24px; }
+    .lm-card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+    .lm-card p { margin: 0; opacity: 0.88; }
+
+    /* ----- Widget mức độ đông ----- */
+    .lm-dong-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 16px; font-size: 0.95rem; }
+    .lm-dong-meta strong { font-weight: 600; }
+    .lm-dong-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .lm-tang__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+    .lm-tang__top h3 { margin: 0; }
+    .lm-tang__count { margin: 0 0 8px; font-size: 0.95rem; }
+    .lm-tang__count strong { font-size: 1.4rem; }
+    .lm-tang__hint { margin: 8px 0 0; font-size: 0.85rem; opacity: 0.8; }
+    .lm-bar { height: 10px; border-radius: 999px; background: rgba(20, 33, 61, 0.1); overflow: hidden; }
+    .lm-bar__fill { height: 100%; border-radius: inherit; width: 0; background: #9aa3b5; transition: width 0.4s ease; }
+    [data-muc="vang"] .lm-bar__fill { background: var(--lm-vang); }
+    [data-muc="vua"] .lm-bar__fill { background: var(--lm-vua); }
+    [data-muc="dong"] .lm-bar__fill { background: var(--lm-dong); }
+    [data-muc="ganKin"] .lm-bar__fill { background: var(--lm-gankin); }
+
+    .lm-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+      background: rgba(20, 33, 61, 0.08); color: var(--lm-chu);
+    }
+    .lm-badge[data-muc="vang"] { background: #dff3e9; color: #1b6b47; }
+    .lm-badge[data-muc="vua"] { background: #fbf0c4; color: #6b5200; }
+    .lm-badge[data-muc="dong"] { background: #fde0c4; color: #8a4308; }
+    .lm-badge[data-muc="ganKin"] { background: #f8d4d0; color: #8f231b; }
+    .lm-badge--tt-mo { background: #e3e9f7; color: #1d3b8b; }
+    .lm-badge--tt-chiPhong { background: #ececec; color: #444; }
+    .lm-badge--tt-dong { background: #d9d9d9; color: #333; }
+
+    .lm-fake-note {
+      margin: 16px 0 0; padding: 10px 14px; border-radius: 12px;
+      border: 1px dashed var(--lm-vien); font-size: 0.85rem; opacity: 0.9;
+    }
+    .lm-link-row { margin: 16px 0 0; }
+    .lm-link-row a { font-weight: 600; }
+
+    /* ----- Gallery ----- */
+    .lm-gallery { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .lm-tile {
+      position: relative; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden;
+      color: #fff; display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 14px; background-size: cover; background-position: center;
+    }
+    .lm-tile--1 { background-image: linear-gradient(135deg, #1f3a68, #3e6aa8); }
+    .lm-tile--2 { background-image: linear-gradient(135deg, #14213d, #4a5d8a); }
+    .lm-tile--3 { background-image: linear-gradient(135deg, #5a3d1e, #c98a2b); }
+    .lm-tile--4 { background-image: linear-gradient(135deg, #1b4d45, #3f9a86); }
+    .lm-tile__chip {
+      position: absolute; top: 10px; left: 10px; padding: 2px 10px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2); font-size: 0.75rem;
+    }
+    .lm-tile__title { margin: 0; font-weight: 700; font-size: 1.05rem; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+    .lm-tile__fact { margin: 2px 0 0; font-size: 0.9rem; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+
+    /* ----- Xem trước bảng giá ----- */
+    .lm-price-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .lm-price { position: relative; }
+    .lm-price--tag { border: 2px solid var(--lm-nhan); }
+    .lm-price__tag {
+      position: absolute; top: -12px; right: 16px; padding: 2px 12px; border-radius: 999px;
+      background: var(--lm-nhan); color: var(--lm-chu); font-size: 0.75rem; font-weight: 700;
+    }
+    .lm-price__gia { display: block; margin: 6px 0 8px; font-size: 1.7rem; font-weight: 700; }
+
+    /* ----- CTA cuối trang ----- */
+    .lm-cta {
+      text-align: center; padding: 32px 20px; border-radius: 16px;
+      background: var(--lm-chu); color: #fff;
+    }
+    .lm-cta h2 { margin: 0 0 8px; font-size: 1.6rem; }
+    .lm-cta p { margin: 0 0 20px; opacity: 0.9; }
+    .lm-cta__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .lm-cta .btn--outline { color: #fff; border-color: rgba(255, 255, 255, 0.7); }
+
+    .lm-loi { padding: 14px; border-radius: 12px; background: #f8d4d0; color: #8f231b; }
+
+    @media (min-width: 480px) {
+      .lm-gallery { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 600px) {
+      .lm-grid-6 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 768px) {
+      .lm-stats { grid-template-columns: repeat(4, 1fr); }
+      .lm-price-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 960px) {
+      .lm-grid-6 { grid-template-columns: repeat(3, 1fr); }
+      .lm-dong-grid { grid-template-columns: repeat(3, 1fr); }
+      .lm-gallery { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .lm-bar__fill { transition: none; }
+    }
+  </style>
 </head>
 <body>
   <main id="noi-dung">
     <noscript>
-      <p class="noscript-note">Trang này cần bật JavaScript để hiển thị menu và chân trang.</p>
+      <p class="noscript-note">Trang này cần bật JavaScript để hiển thị menu, chân trang và các số liệu.</p>
     </noscript>
 
+    <!-- Hero -->
     <section class="hero" aria-labelledby="hero-tieu-de">
       <div class="container hero__inner">
         <p class="hero__eyebrow">Study cafe · 24/7</p>
@@ -33,14 +180,443 @@
           <a class="btn btn--primary btn--lg" href="./dat-phong.html">Đặt lịch</a>
           <a class="btn btn--outline btn--lg" href="./bang-gia.html">Xem combo</a>
         </div>
-        <p class="hero__note">Trang chủ tạm cho Bước 0. Nội dung đầy đủ sẽ được làm ở các bước sau.</p>
+      </div>
+    </section>
+
+    <!-- Số liệu nổi bật -->
+    <section class="lm-section" aria-label="Số liệu nổi bật">
+      <div class="container">
+        <ul class="lm-stats" id="lm-so-lieu"></ul>
+      </div>
+    </section>
+
+    <!-- Sáu điểm mạnh -->
+    <section class="lm-section lm-section--alt" aria-labelledby="lm-manh-tieu-de">
+      <div class="container">
+        <div class="lm-head">
+          <h2 id="lm-manh-tieu-de">Vì sao chọn Lumen 24</h2>
+          <p>Một chỗ ngồi tử tế để học và làm việc, lúc nào cũng có.</p>
+        </div>
+        <ul class="lm-grid-6" id="lm-diem-manh"></ul>
+      </div>
+    </section>
+
+    <!-- Widget mức độ đông -->
+    <section class="lm-section" aria-labelledby="lm-dong-tieu-de">
+      <div class="container">
+        <div class="lm-head">
+          <h2 id="lm-dong-tieu-de">Quán đang đông thế nào?</h2>
+          <p>Xem trước số chỗ trống từng tầng, khỏi phải nhắn hỏi quán.</p>
+        </div>
+        <p class="lm-dong-meta">
+          <span>Giờ mô phỏng: <strong id="lm-gio-mo-phong">--:--</strong></span>
+          <span id="lm-tong-quan"></span>
+        </p>
+        <div class="lm-dong-grid" id="lm-dong">
+          <p>Đang tải dữ liệu…</p>
+        </div>
+        <p class="lm-fake-note">
+          Lưu ý: số khách ở đây là <strong>dữ liệu giả</strong>, tạo theo giờ mô phỏng cho bài tập, không phải khách thật.
+          Trạng thái tầng 3 hiện chỉ dựa vào khung giờ đơn giản (bản tạm).
+        </p>
+        <p class="lm-link-row"><a href="./so-do-cho.html">Xem sơ đồ chỗ ngồi chi tiết</a></p>
+      </div>
+    </section>
+
+    <!-- Gallery không gian -->
+    <section class="lm-section lm-section--alt" aria-labelledby="lm-gallery-tieu-de">
+      <div class="container">
+        <div class="lm-head">
+          <h2 id="lm-gallery-tieu-de">Không gian của Lumen 24</h2>
+          <p>Ba tầng, mỗi tầng một nhịp: học tập trung, làm việc nhóm, họp riêng.</p>
+        </div>
+        <ul class="lm-gallery" id="lm-gallery"></ul>
+      </div>
+    </section>
+
+    <!-- Xem trước bảng giá -->
+    <section class="lm-section" aria-labelledby="lm-gia-tieu-de">
+      <div class="container">
+        <div class="lm-head">
+          <h2 id="lm-gia-tieu-de">Bảng giá nhanh</h2>
+          <p>Giá chỉ tính chỗ ngồi, đồ uống mua riêng. Nước lọc luôn miễn phí.</p>
+        </div>
+        <ul class="lm-price-grid" id="lm-gia"></ul>
+        <p class="lm-link-row"><a href="./bang-gia.html">Xem bảng giá đầy đủ</a></p>
+      </div>
+    </section>
+
+    <!-- Lời kêu gọi hành động -->
+    <section class="lm-section" aria-labelledby="lm-cta-tieu-de">
+      <div class="container">
+        <div class="lm-cta">
+          <h2 id="lm-cta-tieu-de">Sẵn sàng tìm một chỗ ngồi yên tĩnh?</h2>
+          <p>Đặt phòng họp cho nhóm hoặc xem chỗ trống rồi ghé quán ngay.</p>
+          <div class="lm-cta__actions">
+            <a class="btn btn--primary btn--lg" href="./dat-phong.html">Đặt lịch ngay</a>
+            <a class="btn btn--outline btn--lg" href="./so-do-cho.html">Xem chỗ trống</a>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
   <script type="module">
     import { renderLayout } from './js/ui.js';
+    import { getConfig } from './js/api.js';
+    import { now, subscribe } from './js/clock.js';
+
     renderLayout();
+
+    // ------------------------------------------------------------------
+    // Hàm hỗ trợ
+    // ------------------------------------------------------------------
+
+    /** Tạo phần tử DOM an toàn (chuỗi luôn thành văn bản, không phải HTML). */
+    function el(tag, attrs = {}, children = []) {
+      const node = document.createElement(tag);
+      for (const [khoa, giaTri] of Object.entries(attrs)) {
+        if (giaTri === null || giaTri === undefined || giaTri === false) continue;
+        if (khoa === 'class') node.className = giaTri;
+        else if (khoa === 'text') node.textContent = giaTri;
+        else node.setAttribute(khoa, giaTri === true ? '' : giaTri);
+      }
+      for (const con of [].concat(children)) {
+        if (con === null || con === undefined || con === false) continue;
+        node.append(con);
+      }
+      return node;
+    }
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+
+    /** Biểu tượng nét mảnh 24x24 từ danh sách đường vẽ. */
+    function bieuTuong(cacDuong) {
+      const svg = document.createElementNS(SVG_NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor');
+      svg.setAttribute('stroke-width', '1.8');
+      svg.setAttribute('stroke-linecap', 'round');
+      svg.setAttribute('stroke-linejoin', 'round');
+      svg.setAttribute('aria-hidden', 'true');
+      for (const d of cacDuong) {
+        const path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('d', d);
+        svg.append(path);
+      }
+      return svg;
+    }
+
+    function dinhDangTien(soTien) {
+      return soTien.toLocaleString('vi-VN') + 'đ';
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    // ------------------------------------------------------------------
+    // Dữ liệu giả lập mức độ đông (BẢN TẠM)
+    // Khối này giống hệt trong so-do-cho.html để hai trang luôn ra cùng số liệu.
+    // Sẽ thay bằng js/rules.js (R02, R04) ở bước làm check-in và sơ đồ chỗ.
+    // ------------------------------------------------------------------
+
+    const CFG = getConfig();
+    const GIO_VN_MS = 7 * 60 * 60 * 1000;
+
+    /** Tách giờ mô phỏng thành các thành phần theo múi giờ Việt Nam (UTC+7). */
+    function thoiDiemVN(date) {
+      const d = new Date(date.getTime() + GIO_VN_MS);
+      return {
+        nam: d.getUTCFullYear(), thang: d.getUTCMonth() + 1, ngay: d.getUTCDate(),
+        gio: d.getUTCHours(), phut: d.getUTCMinutes(),
+      };
+    }
+
+    function nhanGio(tg) {
+      return `${pad(tg.gio)}:${pad(tg.phut)} ngày ${pad(tg.ngay)}/${pad(tg.thang)}/${tg.nam}`;
+    }
+
+    /** Hàm băm chuỗi thành số, dùng làm hạt giống cho số ngẫu nhiên lặp lại được. */
+    function bamChuoi(chuoi) {
+      let h = 2166136261;
+      for (let i = 0; i < chuoi.length; i++) {
+        h ^= chuoi.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    /** Bộ sinh số ngẫu nhiên có hạt giống (mulberry32): cùng hạt giống thì cùng kết quả. */
+    function taoNgauNhien(hat) {
+      let a = hat;
+      return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    // Tỷ lệ chỗ có người theo từng giờ 0-23 của tầng 1-2 (gần kín lúc 19h-23h như mục 8.4 của đặc tả).
+    const HO_SO_TANG_1_2 = [
+      0.30, 0.20, 0.14, 0.10, 0.08, 0.08,   // 0h-5h
+      0.12, 0.22, 0.32, 0.40, 0.46, 0.50,   // 6h-11h
+      0.52, 0.50, 0.48, 0.54, 0.60, 0.66,   // 12h-17h
+      0.78, 0.90, 0.94, 0.92, 0.86, 0.55,   // 18h-23h
+    ];
+    // Tầng 3: chỉ có người khi chỗ tự do mở (19h-22h59).
+    const HO_SO_TANG_3 = { 19: 0.45, 20: 0.62, 21: 0.66, 22: 0.50 };
+    const HE_SO_TANG = { 1: 1.04, 2: 0.96, 3: 1 };
+
+    /** Giờ gio có nằm trong khung { tu, den } không (khung qua nửa đêm có tu > den). */
+    function trongKhung(khung, gio) {
+      return khung.tu <= khung.den
+        ? gio >= khung.tu && gio < khung.den
+        : gio >= khung.tu || gio < khung.den;
+    }
+
+    /**
+     * Trạng thái chỗ tự do tầng 3 theo khung giờ đơn giản (BẢN TẠM):
+     *   'mo'       trong khung cao điểm 19h-23h
+     *   'dong'     trong khung đêm 23h-6h (chỉ tầng 1-2 hoạt động)
+     *   'chiPhong' các giờ còn lại: chỉ phòng họp
+     * Chưa tính điều kiện "tầng 1-2 vượt 85%" của R02.
+     */
+    function trangThaiTang3(gio) {
+      if (trongKhung(CFG.KHUNG_GIO.caoDiem, gio)) return 'mo';
+      if (trongKhung(CFG.KHUNG_GIO.dem, gio)) return 'dong';
+      return 'chiPhong';
+    }
+
+    const NHAN_TRANG_THAI_TANG_3 = { mo: 'Mở chỗ tự do', chiPhong: 'Chỉ phòng họp', dong: 'Đóng' };
+
+    /** Số khách giả lập đang ngồi ở một tầng. Tầng 3 chưa mở chỗ tự do thì là 0. */
+    function soNguoiGiaLap(tangId, soChoTuDo, tg) {
+      if (tangId === 3 && trangThaiTang3(tg.gio) !== 'mo') return 0;
+      const goc = tangId === 3 ? (HO_SO_TANG_3[tg.gio] ?? 0.5) : HO_SO_TANG_1_2[tg.gio];
+      const ngauNhien = taoNgauNhien(bamChuoi(`${tg.nam}-${tg.thang}-${tg.ngay}-${tg.gio}-${tangId}`));
+      const nhieu = (ngauNhien() - 0.5) * 0.08;
+      const tyLe = Math.min(1, Math.max(0, goc * HE_SO_TANG[tangId] + nhieu));
+      return Math.min(soChoTuDo, Math.round(tyLe * soChoTuDo));
+    }
+
+    /** Mức đông theo ngưỡng trong config (mặc định 30%, 60%, 85%). null nếu không có chỗ mở. */
+    function mucDongTu(soNguoi, soCho) {
+      if (soCho <= 0) return null;
+      const phanTram = (soNguoi / soCho) * 100;
+      const nguong = CFG.QUY_TAC.mucDong;
+      if (phanTram < nguong.vangDuoi) return 'vang';
+      if (phanTram < nguong.vuaDuoi) return 'vua';
+      if (phanTram <= nguong.dongToiDa) return 'dong';
+      return 'ganKin';
+    }
+
+    /** Ảnh chụp tình trạng quán tại thời điểm tg: từng tầng và tổng. */
+    function tinhTrangThaiQuan(tg) {
+      const cacTang = CFG.TANG.map((tang) => {
+        const trangThai = tang.id === 3 ? trangThaiTang3(tg.gio) : 'mo';
+        const soCho = trangThai === 'mo' ? tang.soChoTuDo : 0;
+        const soNguoi = soNguoiGiaLap(tang.id, tang.soChoTuDo, tg);
+        return { tang, trangThai, soCho, soNguoi, muc: mucDongTu(soNguoi, soCho) };
+      });
+      const tongCho = cacTang.reduce((s, t) => s + t.soCho, 0);
+      const tongNguoi = cacTang.reduce((s, t) => s + t.soNguoi, 0);
+      return { cacTang, tongCho, tongNguoi, mucTong: mucDongTu(tongNguoi, tongCho) };
+    }
+
+    // ------------------------------------------------------------------
+    // Số liệu nổi bật
+    // ------------------------------------------------------------------
+
+    const DIEN_TICH_M2 = 300; // đặc tả mục 2.1 và M2; js/config.js chưa có trường diện tích
+
+    function veSoLieu() {
+      const phongDangMo = CFG.PHONG_HOP.filter((p) => p.active);
+      const sucChuaToiDa = Math.max(...phongDangMo.map((p) => p.capacityMax));
+      const muc = [
+        { giaTri: '24/7', nhan: 'Tầng 1 và tầng 2 mở suốt ngày đêm' },
+        { giaTri: `${DIEN_TICH_M2} m²`, nhan: `Không gian ${CFG.TANG.length} tầng`, },
+        { giaTri: `~${CFG.TONG_CHO_TU_DO}`, nhan: 'chỗ ngồi tự do', doc: `khoảng ${CFG.TONG_CHO_TU_DO}` },
+        { giaTri: String(phongDangMo.length), nhan: `phòng họp, đến ${sucChuaToiDa} người` },
+      ];
+      const ds = document.getElementById('lm-so-lieu');
+      ds.replaceChildren(...muc.map((m) =>
+        el('li', { class: 'lm-card lm-stat' }, [
+          el('span', { class: 'lm-stat__value', text: m.giaTri, 'aria-label': m.doc || null }),
+          el('span', { class: 'lm-stat__label', text: m.nhan }),
+        ])
+      ));
+    }
+
+    // ------------------------------------------------------------------
+    // Sáu điểm mạnh
+    // ------------------------------------------------------------------
+
+    function veDiemManh() {
+      const cao = CFG.KHUNG_GIO.caoDiem;
+      const diemManh = [
+        { ten: 'Mở cửa 24/7', mota: `Tầng 1 và 2 mở suốt ngày đêm. Tầng 3 thêm chỗ ngồi tự do ${cao.tu}h-${cao.den}h.`,
+          duong: ['M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'] },
+        { ten: 'Giá minh bạch', mota: 'Giá từng gói công khai, tính chỗ ngồi riêng, đồ uống mua riêng. Nước lọc miễn phí.',
+          duong: ['M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z', 'M7.5 7.5h.01'] },
+        { ten: 'Yên tĩnh để tập trung', mota: 'Khu học giữ yên lặng. Gọi điện ở khu riêng hoặc trong phòng họp.',
+          duong: ['M4 14v-2a8 8 0 0 1 16 0v2', 'M4 14h3v6H4z', 'M17 14h3v6h-3z'] },
+        { ten: 'An toàn, có người trực', mota: 'Luôn có nhân viên trực, kể cả ban đêm. Ca đêm không ai phải trực một mình.',
+          duong: ['M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', 'M9 12l2 2 4-4'] },
+        { ten: 'Phòng họp tự đặt', mota: `${CFG.PHONG_HOP.filter((p) => p.active).length} phòng cho nhóm nhỏ đến lớn. Đặt online, chỉ cần cọc, không cần chờ duyệt.`,
+          duong: ['M3 4h18v12H3z', 'M8 20h8', 'M12 16v4'] },
+        { ten: 'Cộng đồng cùng tiến bộ', mota: 'Tích giờ ngồi để nhận Combo Trọn Ngày, có bảng vinh danh mỗi tháng và ưu đãi cho CLB.',
+          duong: ['M16 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1', 'M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',
+                  'M21 20v-1a4 4 0 0 0-3-3.9', 'M15.5 4.2a3.5 3.5 0 0 1 0 6.6'] },
+      ];
+      document.getElementById('lm-diem-manh').replaceChildren(...diemManh.map((m) =>
+        el('li', { class: 'lm-card' }, [
+          el('span', { class: 'lm-icon' }, bieuTuong(m.duong)),
+          el('h3', { text: m.ten }),
+          el('p', { text: m.mota }),
+        ])
+      ));
+    }
+
+    // ------------------------------------------------------------------
+    // Widget mức độ đông
+    // ------------------------------------------------------------------
+
+    function veTheTang(t) {
+      const mo = t.soCho > 0;
+      const phanTram = mo ? Math.round((t.soNguoi / t.soCho) * 100) : 0;
+
+      let huyHieu;
+      if (t.tang.id === 3) {
+        // Tầng 3 luôn hiện trạng thái; khi mở chỗ tự do thì hiện thêm mức đông.
+        huyHieu = el('span', { class: `lm-badge lm-badge--tt-${t.trangThai}`, text: NHAN_TRANG_THAI_TANG_3[t.trangThai] });
+      } else {
+        huyHieu = el('span', { class: 'lm-badge', 'data-muc': t.muc, text: CFG.MUC_DONG_TEN[t.muc] });
+      }
+
+      const dongSo = mo
+        ? el('p', { class: 'lm-tang__count' }, [
+            el('strong', { text: String(t.soNguoi) }), ` / ${t.soCho} chỗ đang ngồi`,
+          ])
+        : el('p', { class: 'lm-tang__count', text: 'Chỗ ngồi tự do chưa mở' });
+
+      const thanh = el('div', {
+        class: 'lm-bar', role: 'meter', 'aria-valuemin': '0', 'aria-valuemax': '100',
+        'aria-valuenow': String(phanTram), 'aria-label': `${t.tang.ten}: ${phanTram}% chỗ đang có người`,
+      }, el('div', { class: 'lm-bar__fill', style: `width:${phanTram}%` }));
+
+      const phan = [
+        el('div', { class: 'lm-tang__top' }, [el('h3', { text: t.tang.ten }), huyHieu]),
+        dongSo,
+        thanh,
+      ];
+
+      if (t.tang.id === 3 && mo) {
+        phan.push(el('p', { class: 'lm-tang__hint' }, [
+          'Mức đông: ', el('span', { class: 'lm-badge', 'data-muc': t.muc, text: CFG.MUC_DONG_TEN[t.muc] }),
+        ]));
+      } else if (t.tang.id === 3 && t.trangThai === 'chiPhong') {
+        phan.push(el('p', { class: 'lm-tang__hint', text: 'Chỉ phòng họp mở khi có đặt phòng. Chỗ tự do mở trong giờ cao điểm.' }));
+      } else if (t.tang.id === 3) {
+        phan.push(el('p', { class: 'lm-tang__hint', text: 'Ban đêm chỉ tầng 1 và tầng 2 hoạt động.' }));
+      }
+
+      return el('article', { class: 'lm-card lm-tang', 'data-muc': t.muc }, phan);
+    }
+
+    const elLuoiDong = document.getElementById('lm-dong');
+    const elGioMoPhong = document.getElementById('lm-gio-mo-phong');
+    const elTongQuan = document.getElementById('lm-tong-quan');
+    let khoaDaVe = null;
+
+    function capNhatWidget() {
+      const tg = thoiDiemVN(now());
+      elGioMoPhong.textContent = nhanGio(tg);
+
+      // Số liệu giả lập chỉ đổi khi sang giờ mới, nên không vẽ lại nếu chưa đổi giờ.
+      const khoa = `${tg.nam}-${tg.thang}-${tg.ngay}-${tg.gio}`;
+      if (khoa === khoaDaVe) return;
+      khoaDaVe = khoa;
+
+      const tt = tinhTrangThaiQuan(tg);
+      elLuoiDong.replaceChildren(...tt.cacTang.map(veTheTang));
+      elTongQuan.replaceChildren(
+        'Toàn quán: ', el('strong', { text: `${tt.tongNguoi} / ${tt.tongCho}` }), ' chỗ đang mở ',
+        el('span', { class: 'lm-badge', 'data-muc': tt.mucTong, text: CFG.MUC_DONG_TEN[tt.mucTong] })
+      );
+    }
+
+    // ------------------------------------------------------------------
+    // Gallery không gian (khối giữ chỗ; tự dùng ảnh thật nếu có file trong images/)
+    // ------------------------------------------------------------------
+
+    function veGallery() {
+      const [t1, t2, t3] = CFG.TANG;
+      const cao = CFG.KHUNG_GIO.caoDiem;
+      const soPhong = CFG.PHONG_HOP.filter((p) => p.active).length;
+      const sucChuaToiDa = Math.max(...CFG.PHONG_HOP.filter((p) => p.active).map((p) => p.capacityMax));
+      const o = [
+        { ten: 'Khu học tầng 1', so: `${t1.soChoTuDo} chỗ · mở 24/7` },
+        { ten: 'Khu làm việc tầng 2', so: `${t2.soChoTuDo} chỗ · mở 24/7` },
+        { ten: 'Tầng 3 giờ cao điểm', so: `${t3.soChoTuDo} chỗ · mở ${cao.tu}h-${cao.den}h` },
+        { ten: 'Phòng họp', so: `${soPhong} phòng · đến ${sucChuaToiDa} người` },
+      ];
+      const ds = document.getElementById('lm-gallery');
+      ds.replaceChildren(...o.map((m, i) => {
+        const chip = el('span', { class: 'lm-tile__chip', text: 'Ảnh minh họa' });
+        const khoi = el('li', { class: `lm-tile lm-tile--${i + 1}`, role: 'img', 'aria-label': `${m.ten} (ảnh minh họa)` }, [
+          chip,
+          el('p', { class: 'lm-tile__title', text: m.ten }),
+          el('p', { class: 'lm-tile__fact', text: m.so }),
+        ]);
+        // Nếu có ảnh thật images/space-N.jpg thì thay khối giữ chỗ.
+        const anh = new Image();
+        anh.onload = () => {
+          khoi.style.backgroundImage =
+            `linear-gradient(to top, rgba(10,18,40,0.7), rgba(10,18,40,0) 55%), url(./images/space-${i + 1}.jpg)`;
+          chip.remove();
+          khoi.setAttribute('aria-label', m.ten);
+        };
+        anh.src = `./images/space-${i + 1}.jpg`;
+        return khoi;
+      }));
+    }
+
+    // ------------------------------------------------------------------
+    // Xem trước bảng giá
+    // ------------------------------------------------------------------
+
+    function veBangGia() {
+      const maGoi = ['h1', 'h3', 'day'];
+      const goi = maGoi
+        .map((ma) => CFG.GOI_CHO_NGOI.find((g) => g.id === ma))
+        .filter((g) => g && g.active);
+      document.getElementById('lm-gia').replaceChildren(...goi.map((g) =>
+        el('li', { class: `lm-card lm-price${g.tag ? ' lm-price--tag' : ''}` }, [
+          g.tag ? el('span', { class: 'lm-price__tag', text: g.tag }) : null,
+          el('h3', { text: g.name }),
+          el('span', { class: 'lm-price__gia', text: dinhDangTien(g.price) }),
+          el('p', { text: g.description }),
+        ])
+      ));
+    }
+
+    // ------------------------------------------------------------------
+    // Khởi tạo
+    // ------------------------------------------------------------------
+
+    try {
+      veSoLieu();
+      veDiemManh();
+      veGallery();
+      veBangGia();
+      capNhatWidget();
+      subscribe(capNhatWidget);          // đổi giờ, đổi tốc độ, tạm dừng (kể cả từ tab khác)
+      setInterval(capNhatWidget, 5000);  // giờ mô phỏng tự chạy nên cần kiểm tra định kỳ
+    } catch (loi) {
+      console.error('[index] Lỗi khởi tạo trang chủ:', loi);
+      elLuoiDong.replaceChildren(el('p', { class: 'lm-loi', text: 'Không tải được dữ liệu. Vui lòng tải lại trang.' }));
+    }
   </script>
 </body>
 </html>
