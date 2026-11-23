@@ -54,7 +54,7 @@
     .tk-so-gio { font-size: 1.8rem; }
     .tk-truong { margin-bottom: 16px; }
     .tk-truong label { display: block; font-weight: 600; margin-bottom: 6px; }
-    .tk-truong input[type="text"], .tk-truong select {
+    .tk-truong input[type="text"], .tk-truong input[type="month"], .tk-truong select {
       width: 100%;
       box-sizing: border-box;
       min-height: 44px;
@@ -95,10 +95,69 @@
     .tk-phu { color: #55607a; margin: 0 0 12px; font-size: 0.95rem; }
     .tk-lien-ket { color: inherit; font-weight: 600; }
     .tk-rong { color: #55607a; margin: 0; }
+
+    /* ----- Tab Giao dịch ----- */
+    .gd-loc { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+    .gd-tong-so { margin: 0 0 12px; color: #55607a; font-size: 0.95rem; }
+    .gd-ds { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .gd-tieu-de { display: none; }
+    .gd-dong {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "tg tien"
+        "loai nhan"
+        "lk lk";
+      gap: 6px 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid #e1e5ee;
+      border-radius: 12px;
+      background: #fff;
+    }
+    .gd-tg { grid-area: tg; font-size: 0.9rem; color: #55607a; }
+    .gd-tien { grid-area: tien; font-weight: 700; text-align: right; }
+    .gd-loai { grid-area: loai; font-weight: 600; word-break: break-word; }
+    .gd-trang-thai { grid-area: nhan; justify-self: end; }
+    .gd-lk { grid-area: lk; }
+    .gd-lk:empty { display: none; }
+    .gd-lk a { display: inline-flex; align-items: center; min-height: 44px; }
+    .gd-nhan {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .gd-nhan--cho-thanh-toan { background: #fff4d6; color: #7a5200; border-color: #f0d68a; }
+    .gd-nhan--da-thanh-toan { background: #e8f6ee; color: #14532d; border-color: #a7d7b9; }
+    .gd-nhan--that-bai { background: #fdecea; color: #8a1c14; border-color: #f3b7b1; }
+    .gd-nhan--het-han { background: #eceff4; color: #3d4760; border-color: #c9d0de; }
+    .gd-nhan--da-hoan { background: #eef3fb; color: #1b3f7a; border-color: #c4d2ea; }
+    .gd-nhan--mat-coc { background: #ffefe0; color: #8a3b00; border-color: #f2c8a0; }
+    .gd-them { margin-top: 16px; display: flex; justify-content: center; }
+
     @media (min-width: 768px) {
       .tk-luoi { grid-template-columns: 1fr 1fr; }
       .tk-dl { grid-template-columns: 1fr 1fr; }
       .tk-ho-so { max-width: 560px; }
+      .gd-loc { grid-template-columns: 1fr 1fr; max-width: 560px; }
+      .gd-tieu-de, .gd-dong { grid-template-columns: 1.3fr 1.5fr 1fr 1fr 110px; }
+      .gd-tieu-de {
+        display: grid;
+        gap: 12px;
+        padding: 0 14px;
+        margin: 0 0 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #55607a;
+      }
+      .gd-tieu-de span:nth-child(3) { text-align: right; }
+      .gd-dong { grid-template-areas: "tg loai tien nhan lk"; }
+      .gd-trang-thai { justify-self: start; }
+      .gd-lk:empty { display: block; }
     }
   </style>
 </head>
@@ -111,7 +170,18 @@
 
   <script type="module">
     import { renderLayout } from './js/ui.js';
-    import { getCurrentUser, saveUser, deleteUser, logout } from './js/api.js';
+    import { now } from './js/clock.js';
+    import {
+      getCurrentUser,
+      saveUser,
+      deleteUser,
+      logout,
+      lichSuGiaoDich,
+      LOAI_GIAO_DICH,
+      TEN_LOAI_GIAO_DICH,
+      TEN_TRANG_THAI_THANH_TOAN,
+      TRANG_THAI_THANH_TOAN,
+    } from './js/api.js';
 
     renderLayout();
 
@@ -125,6 +195,8 @@
     ];
     const NHAN_LOAI_KHACH = { student: 'Sinh viên', worker: 'Đi làm' };
     const NHAN_VAI_TRO = { guest: 'Khách', staff: 'Nhân viên', manager: 'Quản lý' };
+    const SO_DONG_MOI_TRANG = 20;
+    const MAU_THANG = /^\d{4}-(0[1-9]|1[0-2])$/;
 
     /** Tạo phần tử DOM an toàn: chuỗi luôn thành văn bản (không dùng innerHTML). */
     function el(tag, attrs = {}, children = []) {
@@ -145,6 +217,44 @@
     function dinhDangGio(so) {
       const n = Number.isFinite(so) ? so : 0;
       return n.toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' giờ';
+    }
+
+    /** Tiền: 89.000đ */
+    function dinhDangTien(so) {
+      const n = Number.isFinite(so) ? so : 0;
+      return n.toLocaleString('vi-VN') + 'đ';
+    }
+
+    const DINH_DANG_GIO_VN = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    });
+
+    const DINH_DANG_THANG_VN = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      year: 'numeric',
+      month: '2-digit',
+    });
+
+    /** Chuỗi ISO -> dd/mm/yyyy HH:mm theo giờ Việt Nam. */
+    function dinhDangThoiDiem(iso) {
+      const ms = Date.parse(iso);
+      if (!Number.isFinite(ms)) return '—';
+      const p = {};
+      for (const phan of DINH_DANG_GIO_VN.formatToParts(new Date(ms))) p[phan.type] = phan.value;
+      return p.day + '/' + p.month + '/' + p.year + ' ' + p.hour + ':' + p.minute;
+    }
+
+    /** Tháng hiện tại theo đồng hồ mô phỏng, giờ Việt Nam, dạng YYYY-MM. */
+    function thangHienTai() {
+      const p = {};
+      for (const phan of DINH_DANG_THANG_VN.formatToParts(now())) p[phan.type] = phan.value;
+      return p.year + '-' + p.month;
     }
 
     function layTabHienTai() {
@@ -216,6 +326,7 @@
       // Nội dung tab
       if (tab === 'tong-quan') goc.append(taoTongQuan());
       else if (tab === 'ho-so') goc.append(taoHoSo());
+      else if (tab === 'giao-dich') goc.append(taoGiaoDich());
       else goc.append(el('div', { class: 'tk-the' }, [
         el('h2', { text: DANH_SACH_TAB.find((t) => t.ma === tab).nhan }),
         el('p', { class: 'tk-rong', text: 'Sẽ có ở bước sau' }),
@@ -355,6 +466,144 @@
       ]);
 
       return el('div', {}, [theHoSo, theXoa]);
+    }
+
+    // ---------- Tab Giao dịch ----------
+    function taoGiaoDich() {
+      const khungLoi = el('p', { class: 'tk-thong-bao', hidden: true });
+      const vungDanhSach = el('div');
+
+      const oLoai = el('select', { id: 'loc-loai', name: 'loc-loai' }, [
+        el('option', { value: '', text: 'Tất cả loại' }),
+        ...Object.values(LOAI_GIAO_DICH).map((ma) => el('option', {
+          value: ma,
+          text: TEN_LOAI_GIAO_DICH[ma] || ma,
+        })),
+      ]);
+
+      const oThang = el('input', {
+        id: 'loc-thang',
+        name: 'loc-thang',
+        type: 'month',
+        placeholder: 'YYYY-MM',
+        pattern: '\\d{4}-\\d{2}',
+      });
+      oThang.value = thangHienTai();
+
+      const form = el('form', { class: 'gd-loc', novalidate: true }, [
+        el('div', { class: 'tk-truong' }, [
+          el('label', { for: 'loc-loai', text: 'Loại giao dịch' }),
+          oLoai,
+        ]),
+        el('div', { class: 'tk-truong' }, [
+          el('label', { for: 'loc-thang', text: 'Tháng' }),
+          oThang,
+          el('p', { class: 'tk-goi-y', text: 'Dạng YYYY-MM, ví dụ 2027-11. Để trống để xem mọi tháng.' }),
+        ]),
+      ]);
+      form.addEventListener('submit', (suKien) => suKien.preventDefault());
+
+      let luotTai = 0; // bỏ qua kết quả của lần tải cũ nếu người dùng đổi bộ lọc liên tục
+      let danhSachDay = [];
+      let soDangHien = SO_DONG_MOI_TRANG;
+
+      function taoDong(tt) {
+        const tenLoai = TEN_LOAI_GIAO_DICH[tt.loai] || tt.loai;
+        const lienKet = tt.trangThai === TRANG_THAI_THANH_TOAN.CHO
+          ? el('a', {
+            class: 'tk-lien-ket',
+            href: './thanh-toan.html?id=' + encodeURIComponent(tt.id),
+            text: 'Thanh toán',
+            'aria-label': 'Thanh toán đơn ' + tenLoai + ' ' + dinhDangTien(tt.tien),
+          })
+          : null;
+        return el('li', { class: 'gd-dong' }, [
+          el('span', { class: 'gd-tg', text: dinhDangThoiDiem(tt.taoLuc) }),
+          el('span', { class: 'gd-loai', text: tenLoai }),
+          el('span', { class: 'gd-tien', text: dinhDangTien(tt.tien) }),
+          el('span', { class: 'gd-trang-thai' }, el('span', {
+            class: 'gd-nhan gd-nhan--' + tt.trangThai,
+            text: TEN_TRANG_THAI_THANH_TOAN[tt.trangThai] || tt.trangThai,
+          })),
+          el('span', { class: 'gd-lk' }, lienKet),
+        ]);
+      }
+
+      function veDanhSach() {
+        vungDanhSach.textContent = '';
+        if (danhSachDay.length === 0) {
+          vungDanhSach.append(el('p', {
+            class: 'tk-rong',
+            role: 'status',
+            text: 'Chưa có giao dịch nào phù hợp với bộ lọc.',
+          }));
+          return;
+        }
+
+        const dangHien = danhSachDay.slice(0, soDangHien);
+        vungDanhSach.append(el('p', {
+          class: 'gd-tong-so',
+          role: 'status',
+          text: 'Hiển thị ' + dangHien.length + ' trên ' + danhSachDay.length + ' giao dịch',
+        }));
+        vungDanhSach.append(el('div', { class: 'gd-tieu-de', 'aria-hidden': 'true' }, [
+          el('span', { text: 'Thời điểm' }),
+          el('span', { text: 'Loại' }),
+          el('span', { text: 'Số tiền' }),
+          el('span', { text: 'Trạng thái' }),
+          el('span'),
+        ]));
+        const ds = el('ul', { class: 'gd-ds' });
+        for (const tt of dangHien) ds.append(taoDong(tt));
+        vungDanhSach.append(ds);
+
+        if (danhSachDay.length > dangHien.length) {
+          const nutThem = el('button', { class: 'tk-btn tk-btn--vien', type: 'button', text: 'Xem thêm' });
+          nutThem.addEventListener('click', () => {
+            soDangHien += SO_DONG_MOI_TRANG;
+            veDanhSach();
+          });
+          vungDanhSach.append(el('div', { class: 'gd-them' }, nutThem));
+        }
+      }
+
+      async function taiDanhSach() {
+        const luot = ++luotTai;
+        khungLoi.hidden = true;
+        const thang = oThang.value.trim();
+
+        if (thang !== '' && !MAU_THANG.test(thang)) {
+          vungDanhSach.textContent = '';
+          hienThongBao(khungLoi, 'loi', 'Tháng không hợp lệ. Hãy nhập theo dạng YYYY-MM, ví dụ 2027-11.');
+          return;
+        }
+
+        vungDanhSach.textContent = '';
+        vungDanhSach.append(el('p', { class: 'tk-rong', role: 'status', text: 'Đang tải giao dịch...' }));
+        try {
+          const ketQua = await lichSuGiaoDich(nguoi.id, { loai: oLoai.value, thang });
+          if (luot !== luotTai) return;
+          danhSachDay = ketQua;
+          soDangHien = SO_DONG_MOI_TRANG;
+          veDanhSach();
+        } catch (loi) {
+          if (luot !== luotTai) return;
+          vungDanhSach.textContent = '';
+          hienThongBao(khungLoi, 'loi', loi && loi.message ? loi.message : 'Không tải được giao dịch. Vui lòng thử lại.');
+        }
+      }
+
+      oLoai.addEventListener('change', taiDanhSach);
+      oThang.addEventListener('change', taiDanhSach);
+
+      taiDanhSach();
+
+      return el('section', { class: 'tk-the' }, [
+        el('h2', { text: 'Lịch sử giao dịch' }),
+        form,
+        khungLoi,
+        vungDanhSach,
+      ]);
     }
   </script>
 </body>
