@@ -1,11 +1,17 @@
 // js/seed.js
 // -----------------------------------------------------------------------------
-// Dữ liệu giả ban đầu của Lumen 24 (Bước 1b).
+// Dữ liệu giả ban đầu của Lumen 24 (Bước 1b, cập nhật ở Bước 3a).
 // Hiện chỉ gồm: 7 tài khoản demo (mục 3.2) và 3 CLB (mục 8.1).
 // Dữ liệu lịch sử (khách mỗi ngày, doanh thu, góp ý, đặt phòng mẫu, bảng vinh danh)
 // làm ở các bước sau (Bước 10 và 14), KHÔNG đặt ở đây.
 //
-// File này chỉ import js/store.js. Không import config.js vì Bước này chưa cần số liệu nào của nó.
+// Bước 3a thêm:
+//   - Hai khóa mới KHOA_DANG_NHAP và KHOA_BO_DEM_MA, cả hai nằm trong KHOA_PHAT_SINH
+//     để resetDemoData() đăng xuất và đặt lại bộ đếm mã khách (quyết định G-reset, G-code).
+//   - Hàm boDemMaSeed(): giá trị bắt đầu của bộ đếm mã khách khi dùng dữ liệu seed.
+//
+// File này chỉ import js/store.js. Không import config.js vì chưa cần số liệu nào của nó.
+// Không import api.js (api.js import file này, import ngược sẽ bị vòng lặp).
 // -----------------------------------------------------------------------------
 
 import * as store from './store.js';
@@ -18,13 +24,20 @@ export const KHOA_NGUOI_DUNG = 'users';
 export const KHOA_CLB = 'clubs';
 /** Khóa đồng hồ mô phỏng. PHẢI trùng với KHOA_LUU trong js/clock.js. */
 export const KHOA_DONG_HO = 'clock';
+/** Khóa lưu id của người đang đăng nhập (G-session). api.js dùng lại hằng số này. */
+export const KHOA_DANG_NHAP = 'lumen-current-user';
+/** Khóa lưu bộ đếm mã khách: số nguyên là SỐ THỨ TỰ CỦA MÃ ĐÃ CẤP GẦN NHẤT (G-code). */
+export const KHOA_BO_DEM_MA = 'lumen-code-counter';
 
 /**
- * Danh sách khóa trạng thái phát sinh khi dùng (phiên ngồi, đặt phòng, giao dịch, đơn đồ...).
- * resetDemoData() xóa các khóa này để về trạng thái trống. Hiện để trống vì các module chưa làm;
- * mỗi bước sau thêm tên khóa của mình vào đây (ví dụ 'bookings', 'payments').
+ * Danh sách khóa trạng thái phát sinh khi dùng (đăng nhập, bộ đếm mã, phiên ngồi, đặt phòng,
+ * giao dịch, đơn đồ...). resetDemoData() xóa các khóa này để về trạng thái trống.
+ * Mỗi bước sau thêm tên khóa của mình vào đây (ví dụ 'bookings', 'payments').
+ *   - KHOA_DANG_NHAP: xóa thì người dùng bị đăng xuất.
+ *   - KHOA_BO_DEM_MA: xóa thì api.js tự tạo lại từ seed (bằng 7) ở lần cấp mã kế tiếp,
+ *     nên tài khoản mới đầu tiên sau khi reset lại là LM-000008.
  */
-export const KHOA_PHAT_SINH = [];
+export const KHOA_PHAT_SINH = [KHOA_DANG_NHAP, KHOA_BO_DEM_MA];
 
 // ---------- Hằng số của dữ liệu seed ----------
 
@@ -136,12 +149,26 @@ export function taoNguoiDungSeed() {
   ];
 }
 
+/**
+ * Giá trị bắt đầu của bộ đếm mã khách với dữ liệu seed (G-code): bằng số thứ tự lớn nhất
+ * trong các mã LM-xxxxxx của 7 tài khoản seed, tức là 7. Mã mới đầu tiên sẽ là LM-000008.
+ * Tính từ dữ liệu seed nên không phải sửa tay khi thêm hoặc bớt tài khoản seed.
+ */
+export function boDemMaSeed() {
+  let lonNhat = 0;
+  for (const nguoi of taoNguoiDungSeed()) {
+    const khop = /^LM-(\d+)$/.exec(String(nguoi.code || ''));
+    if (khop) lonNhat = Math.max(lonNhat, Number(khop[1]));
+  }
+  return lonNhat;
+}
+
 // ---------- Đặt lại dữ liệu demo ----------
 
 /**
  * Đưa store về trạng thái seed:
  *   1. Ghi lại danh sách người dùng và CLB (mất các tài khoản đăng ký thêm).
- *   2. Xóa các khóa trong KHOA_PHAT_SINH.
+ *   2. Xóa các khóa trong KHOA_PHAT_SINH (gồm khóa đăng nhập và bộ đếm mã khách).
  *   3. Nếu datLaiDongHo là true (mặc định): xóa khóa đồng hồ để đồng hồ về mặc định
  *      10/11/2027 lúc 20h (mục 8.5). js/clock.js tự nhận ra khóa bị xóa và quay về mặc định.
  *
